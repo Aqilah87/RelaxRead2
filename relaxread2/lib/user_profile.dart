@@ -207,11 +207,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ],
             // End of conditional "Account Actions" section
 
-            // General Settings Section (Example)
+            // --- Profile Settings Section (New) ---
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'General Settings',
+                'Profile Settings', // New section title
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -228,9 +228,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ),
               elevation: 2.0,
               child: ListTile(
-                leading: Icon(Icons.notifications_none, color: primaryGreen),
+                leading: Icon(Icons.lock_outline, color: primaryGreen),
                 title: const Text(
-                  'Notifications',
+                  'Change Password',
                   style: TextStyle(fontSize: 17),
                 ),
                 trailing: const Icon(
@@ -240,8 +240,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Notifications settings!')),
+                    const SnackBar(content: Text('Change Password!')),
                   );
+                  // Navigate to change password page
                 },
               ),
             ),
@@ -252,9 +253,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ),
               elevation: 2.0,
               child: ListTile(
-                leading: Icon(Icons.privacy_tip_outlined, color: primaryGreen),
+                leading: Icon(
+                  Icons.subscriptions_outlined,
+                  color: primaryGreen,
+                ),
                 title: const Text(
-                  'Privacy Policy',
+                  'Manage Subscriptions',
                   style: TextStyle(fontSize: 17),
                 ),
                 trailing: const Icon(
@@ -264,8 +268,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Privacy Policy!')),
+                    const SnackBar(content: Text('Manage Subscriptions!')),
                   );
+                  // Navigate to subscription management page
                 },
               ),
             ),
@@ -276,11 +281,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ),
               elevation: 2.0,
               child: ListTile(
-                leading: Icon(Icons.help_outline, color: primaryGreen),
+                leading: Icon(
+                  Icons.delete_outline,
+                  color: Colors.redAccent,
+                ), // Red icon for delete
                 title: const Text(
-                  'Help & Support',
-                  style: TextStyle(fontSize: 17),
-                ),
+                  'Delete Account',
+                  style: TextStyle(fontSize: 17, color: Colors.redAccent),
+                ), // Red text for delete
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                   size: 18,
@@ -288,8 +296,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Help & Support!')),
+                    const SnackBar(
+                      content: Text('Delete Account! (Confirmation needed)'),
+                    ),
                   );
+                  // Implement account deletion logic (with confirmation dialog)
                 },
               ),
             ),
@@ -318,7 +329,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   elevation: 2,
                 ),
               ),
-            const SizedBox(height: 20), // Space after logout button if visible
+            const SizedBox(height: 20), // Space after simulation button
           ],
         ),
       ),

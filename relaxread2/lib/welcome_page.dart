@@ -10,11 +10,6 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
-  // Define the primary green color, consistent with your other screens
-  static const Color primaryGreen = Color(0xFF6B923C);
-  // Define a slightly darker green for accents
-  static const Color loginPrimaryGreen = Color(0xFF5A7F30);
-
   @override
   void initState() {
     super.initState();
@@ -36,19 +31,17 @@ class _WelcomePageState extends State<WelcomePage> {
       // The background with a subtle pattern
       backgroundColor: const Color(0xFFF0F2EB), // Base background color
       body: Container(
-        decoration: const BoxDecoration(
-          // For the subtle pattern background, you'll need an asset image.
-          // Example: assets/pattern_background.png
-          // Replace 'assets/pattern_background.png' with your actual image path.
-          // For demonstration, I'll use a simple color, but the structure is there.
-          // image: DecorationImage(
-          //   image: AssetImage('assets/pattern_background.png'),
-          //   repeat: ImageRepeat.repeat, // Repeat the image to fill the background
-          //   colorFilter: ColorFilter.mode(
-          //     Colors.white.withOpacity(0.1), // Adjust opacity for subtlety
-          //     BlendMode.dstATop,
-          //   ),
-          // ),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage(
+              'assets/noisy_background.png',
+            ), // Background image
+            fit: BoxFit.cover, // Cover the entire screen
+            colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.8), // Lighten the background
+              BlendMode.modulate, // Blend mode to apply the color filter
+            ),
+          ),
         ),
         child: Center(
           child: Column(
