@@ -3,6 +3,7 @@ import 'package:relaxread2/user/user_profile.dart'; // Corrected import for user
 import 'package:relaxread2/user/settings_page.dart'; // Import the new settings page
 import 'package:relaxread2/user/wishlist_page.dart'; // Import wishlist_page.dart
 import 'package:relaxread2/user/book.dart'; // Import the Book class
+import 'book.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -294,7 +295,42 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         children: featuredBooks.isEmpty
             ? [const Center(child: Text('Wishlist is empty at the moment 👀'))]
-            : featuredBooks.map((book) => WishlistCard(book: book)).toList(),
+            : featuredBooks.map((book) {
+                return WishlistCard(
+                  book: book,
+                  onConfirmDelete: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Remove from Wishlist?'),
+                        content: const Text('Are you sure you want to delete this book?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                featuredBooks.remove(book);
+                              });
+                              Navigator.of(context).pop();
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Book removed from wishlist')),
+                              );
+                            },
+                            child: const Text(
+                              'Delete',
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
       ),
     ),
 

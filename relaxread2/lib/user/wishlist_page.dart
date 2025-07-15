@@ -1,11 +1,38 @@
 import 'package:flutter/material.dart';
-import 'book.dart';
 import 'package:relaxread2/user/book.dart';
 
-class WishlistPage extends StatelessWidget {
-  final List<Book> wishlist;
+class WishlistPage extends StatefulWidget {
+  const WishlistPage({super.key});
 
-  const WishlistPage({super.key, required this.wishlist});
+  @override
+  State<WishlistPage> createState() => _WishlistPageState();
+}
+
+class _WishlistPageState extends State<WishlistPage> {
+  List<Book> wishlist = [
+    Book(
+      title: 'Calon Isteri Tuan Haider',
+      author: 'Zati Mohd',
+      imageUrl: 'https://placehold.co/80x120.png?text=Book+Cover',
+      personalNote: 'A heartfelt romance with emotional depth.',
+    ),
+    Book(
+      title: 'Bos Paling Romantik',
+      author: 'Crystal Anabella',
+      imageUrl: 'https://placehold.co/80x120.png?text=Bos+Romantik',
+      personalNote: 'Enemies to lovers with teasing tension.',
+    ),
+  ];
+
+  void deleteBook(int index) {
+    setState(() {
+      wishlist.removeAt(index);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Removed from wishlist')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +49,10 @@ class WishlistPage extends StatelessWidget {
               itemCount: wishlist.length,
               itemBuilder: (context, index) {
                 final book = wishlist[index];
-                return WishlistCard(book: book);
+                return WishlistCard(
+                  book: book,
+                  onConfirmDelete: () => deleteBook(index),
+                );
               },
             ),
     );
@@ -31,8 +61,13 @@ class WishlistPage extends StatelessWidget {
 
 class WishlistCard extends StatelessWidget {
   final Book book;
+  final VoidCallback onConfirmDelete;
 
-  const WishlistCard({super.key, required this.book});
+  const WishlistCard({
+    super.key,
+    required this.book,
+    required this.onConfirmDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +139,31 @@ class WishlistCard extends StatelessWidget {
             child: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
               onPressed: () {
-                // TODO: Handle delete logic with state management
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Remove from Wishlist?'),
+                    content: const Text(
+                      'Are you sure you want to delete this book?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          onConfirmDelete();
+                        },
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
           ),

@@ -338,11 +338,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   size: 18,
                   color: trailingIconColor,
                 ), // Dynamic icon color
-                onTap: () {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('Help & FAQs!')));
-                },
+                onTap: () => showInfoDialog(
+                  context,
+                  'Help & FAQs',
+                  'Need help using RelaxRead?\n\nCheck out answers to common questions:\n\n• How do I add a book to my wishlist?\n• How do I follow an author?\n• How can I leave a review?\n• Can I use RelaxRead without logging in?\n\nIf you still need help, contact us through Send Feedback.',
+                  Icons.help_outline,
+                ),
               ),
             ),
             Card(
