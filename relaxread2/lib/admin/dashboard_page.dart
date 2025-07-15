@@ -5,6 +5,8 @@ import 'review_management_page.dart';
 import 'settings_page_admin.dart';
 import 'package:relaxread2/user/book.dart';
 import 'manage_books_page.dart'; // Import the ManageBooksPage
+import 'package:provider/provider.dart'; // Import Provider
+import '../theme_provider.dart'; // Import your custom ThemeProvider
 
 // Placeholder for globalReviews, similar to globalEbooks
 // In a real application, you would fetch these from a database or API.
@@ -23,9 +25,27 @@ class AdminDashboardPage extends StatefulWidget {
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  // Define base colors
   static const Color primaryGreen = Color(0xFF6B923C);
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
+
+  // Light mode specific colors
   static const Color lightGreenBackground = Color(0xFFF0F2EB);
+  static const Color lightAppBarBackground = Colors.white;
+  static const Color lightCardBackground = Colors.white;
+  static const Color lightTextColor = Colors.black;
+  static const Color lightDrawerHeaderBackground = loginPrimaryGreen;
+  static const Color lightDrawerIconColor = Colors.grey;
+  static const Color lightDrawerTextColor = Colors.black;
+
+  // Dark mode specific colors
+  static const Color darkBackground = Color(0xFF1A1A1A); // Dark charcoal
+  static const Color darkAppBarBackground = Color(0xFF2C2C2C); // Darker gray
+  static const Color darkCardBackground = Color(0xFF383838); // Medium dark gray
+  static const Color darkTextColor = Colors.white;
+  static const Color darkDrawerHeaderBackground = Color(0xFF2C2C2C);
+  static const Color darkDrawerIconColor = Colors.white70;
+  static const Color darkDrawerTextColor = Colors.white;
 
   int _selectedIndex = 0;
   final List<Map<String, dynamic>> _navigationDestinations = [
@@ -35,13 +55,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     {'label': 'Settings', 'icon': Icons.settings},
   ];
 
-  // State to manage the list of books
   List<Book> _allBooks = [];
 
   @override
   void initState() {
     super.initState();
-    // Initialize with some dummy data or load from persistence
     _allBooks = [
       Book(
         ebookId: '1',
@@ -99,51 +117,98 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     });
   }
 
+  // Helper getters for colors based on dark mode
+  Color _scaffoldBackgroundColor(bool isDarkMode) =>
+      isDarkMode ? darkBackground : lightGreenBackground;
+  Color _appBarBackgroundColor(bool isDarkMode) =>
+      isDarkMode ? darkAppBarBackground : lightAppBarBackground;
+  Color _appBarTitleColor(bool isDarkMode) =>
+      isDarkMode ? Colors.white : loginPrimaryGreen;
+  Color _drawerHeaderBackgroundColor(bool isDarkMode) =>
+      isDarkMode ? darkDrawerHeaderBackground : lightDrawerHeaderBackground;
+  Color _drawerIconColor(bool isDarkMode) =>
+      isDarkMode ? darkDrawerIconColor : lightDrawerIconColor;
+  Color _drawerTextColor(bool isDarkMode) =>
+      isDarkMode ? darkDrawerTextColor : lightDrawerTextColor;
+  Color _cardBackgroundColor(bool isDarkMode) =>
+      isDarkMode ? darkCardBackground : lightCardBackground;
+  Color _dashboardTitleColor(bool isDarkMode) =>
+      isDarkMode ? Colors.white : primaryGreen;
+  Color _statCardTitleColor(bool isDarkMode) =>
+      isDarkMode ? Colors.white : Colors.black;
+
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final bool isDarkMode = themeProvider.isDarkMode;
+
     final int totalUsers = 1250;
     final int totalAdmins = 5;
     final int totalReviews = globalReviews.length;
-    final int totalEbooks =
-        _allBooks.length; // Use the internal _allBooks length
+    final int totalEbooks = _allBooks.length;
 
     final List<Widget> pages = [
-      _buildDashboardPage(totalUsers, totalAdmins, totalReviews, totalEbooks),
+      _buildDashboardPage(
+        totalUsers,
+        totalAdmins,
+        totalReviews,
+        totalEbooks,
+        isDarkMode,
+      ),
       ManageBooksPage(
         initialEbooks: _allBooks,
         onBookAdded: _addBook,
         onBookUpdated: _updateBook,
         onBookDeleted: _deleteBook,
-      ), // Pass data and callbacks
+      ),
       const ReviewManagementPage(),
       const AdminSettingsPage(),
     ];
 
     return Scaffold(
-      backgroundColor: lightGreenBackground,
+      backgroundColor: _scaffoldBackgroundColor(isDarkMode),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _appBarBackgroundColor(isDarkMode),
         elevation: 1.0,
         title: Text(
           _navigationDestinations[_selectedIndex]['label'],
-          style: const TextStyle(
-            color: loginPrimaryGreen,
+          style: TextStyle(
+            color: _appBarTitleColor(isDarkMode),
             fontWeight: FontWeight.bold,
             fontSize: 22,
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              color: _appBarTitleColor(isDarkMode),
+            ),
+            onPressed: () {
+              themeProvider.toggleTheme(); // Toggle theme using ThemeProvider
+            },
+            tooltip: isDarkMode
+                ? 'Switch to Light Mode'
+                : 'Switch to Dark Mode',
+          ),
+        ],
       ),
       drawer: MediaQuery.of(context).size.width < 600
           ? Drawer(
+              backgroundColor: _scaffoldBackgroundColor(
+                isDarkMode,
+              ), // Apply dark mode color to drawer background
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
                   DrawerHeader(
-                    decoration: BoxDecoration(color: loginPrimaryGreen),
+                    decoration: BoxDecoration(
+                      color: _drawerHeaderBackgroundColor(isDarkMode),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         CircleAvatar(
                           radius: 30,
                           backgroundColor: Colors.white,
@@ -173,7 +238,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         item['icon'],
                         color: _selectedIndex == idx
                             ? primaryGreen
-                            : Colors.grey[700],
+                            : _drawerIconColor(isDarkMode),
                       ),
                       title: Text(
                         item['label'],
@@ -181,9 +246,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           fontWeight: _selectedIndex == idx
                               ? FontWeight.bold
                               : FontWeight.normal,
+                          color: _drawerTextColor(isDarkMode),
                         ),
                       ),
                       selected: _selectedIndex == idx,
+                      selectedTileColor: isDarkMode
+                          ? Colors.white12
+                          : Colors.grey[200], // Highlight selected item
                       onTap: () {
                         setState(() {
                           _selectedIndex = idx;
@@ -194,9 +263,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   }).toList(),
                   const Divider(),
                   ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.grey),
-                    title: const Text('Logout'),
-                    onTap: () {},
+                    leading: Icon(Icons.logout, color: Colors.red),
+                    title: Text('Logout', style: TextStyle(color: Colors.red)),
+                    onTap: () {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/welcome', // Replace with your actual welcome page route
+                        (Route<dynamic> route) => false,
+                      );
+                      // You might also want to clear user session data here
+                    },
                   ),
                 ],
               ),
@@ -209,6 +284,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             children: [
               if (!isSmallScreen)
                 NavigationRail(
+                  backgroundColor: _appBarBackgroundColor(
+                    isDarkMode,
+                  ), // Apply dark mode color to navigation rail
                   selectedIndex: _selectedIndex,
                   onDestinationSelected: (int index) {
                     setState(() {
@@ -218,13 +296,19 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   labelType: NavigationRailLabelType.all,
                   destinations: _navigationDestinations.map((item) {
                     return NavigationRailDestination(
-                      icon: Icon(item['icon']),
+                      icon: Icon(
+                        item['icon'],
+                        color: _drawerIconColor(isDarkMode),
+                      ), // Apply dark mode icon color
                       selectedIcon: Icon(item['icon'], color: primaryGreen),
-                      label: Text(item['label']),
+                      label: Text(
+                        item['label'],
+                        style: TextStyle(color: _drawerTextColor(isDarkMode)),
+                      ), // Apply dark mode text color
                     );
                   }).toList(),
                   leading: Column(
-                    children: const [
+                    children: [
                       SizedBox(height: 16),
                       CircleAvatar(
                         radius: 24,
@@ -240,7 +324,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         'Admin',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: loginPrimaryGreen,
+                          color: _appBarTitleColor(
+                            isDarkMode,
+                          ), // Use app bar title color for consistency
                         ),
                       ),
                     ],
@@ -254,7 +340,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildDashboardPage(int users, int admins, int reviews, int ebooks) {
+  Widget _buildDashboardPage(
+    int users,
+    int admins,
+    int reviews,
+    int ebooks,
+    bool isDarkMode,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -265,19 +357,28 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             '$ebooks',
             Icons.menu_book,
             primaryGreen,
+            isDarkMode,
           ),
-          _buildStatCard('Total Users', '$users', Icons.people, Colors.blue),
+          _buildStatCard(
+            'Total Users',
+            '$users',
+            Icons.people,
+            Colors.blue,
+            isDarkMode,
+          ),
           _buildStatCard(
             'Total Reviews',
             '$reviews',
             Icons.reviews,
             Colors.purple,
+            isDarkMode,
           ),
           _buildStatCard(
             'Total Admins',
             '$admins',
             Icons.admin_panel_settings,
             Colors.orange,
+            isDarkMode,
           ),
           const SizedBox(height: 30),
           Text(
@@ -285,11 +386,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: primaryGreen,
+              color: _dashboardTitleColor(isDarkMode), // Apply dark mode color
             ),
           ),
           const SizedBox(height: 10),
           Card(
+            color: _cardBackgroundColor(
+              isDarkMode,
+            ), // Apply dark mode color to card
             elevation: 4,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -318,7 +422,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             ];
                             return Text(
                               months[value.toInt()],
-                              style: const TextStyle(fontSize: 12),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: _statCardTitleColor(isDarkMode),
+                              ), // Apply dark mode color
                             );
                           },
                           reservedSize: 30,
@@ -326,7 +433,18 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         ),
                       ),
                       leftTitles: AxisTitles(
-                        sideTitles: SideTitles(showTitles: true, interval: 5),
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          interval: 5,
+                          getTitlesWidget: (value, meta) {
+                            return Text(
+                              value.toInt().toString(),
+                              style: TextStyle(
+                                color: _statCardTitleColor(isDarkMode),
+                              ),
+                            ); // Apply dark mode color
+                          },
+                        ),
                       ),
                       rightTitles: AxisTitles(
                         sideTitles: SideTitles(showTitles: false),
@@ -335,7 +453,18 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         sideTitles: SideTitles(showTitles: false),
                       ),
                     ),
-                    gridData: FlGridData(show: true),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (value) {
+                        return FlLine(
+                          color: isDarkMode
+                              ? Colors.white12
+                              : Colors.grey.withOpacity(0.5),
+                          strokeWidth: 1,
+                        );
+                      },
+                    ),
                     borderData: FlBorderData(show: false),
                     barGroups: [
                       BarChartGroupData(
@@ -414,8 +543,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     String value,
     IconData icon,
     Color color,
+    bool isDarkMode, // Add isDarkMode parameter
   ) {
     return Card(
+      color: _cardBackgroundColor(isDarkMode), // Apply dark mode color to card
       margin: const EdgeInsets.symmetric(vertical: 10),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -423,7 +554,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         leading: Icon(icon, size: 36, color: color),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: _statCardTitleColor(isDarkMode),
+          ), // Apply dark mode color
         ),
         trailing: Text(
           value,

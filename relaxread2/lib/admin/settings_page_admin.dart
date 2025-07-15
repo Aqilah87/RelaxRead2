@@ -1,7 +1,7 @@
+// lib/settings_page_admin.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../theme_provider.dart';
-import 'dashboard_page.dart'; // <<< ADD THIS IMPORT
+import 'package:provider/provider.dart'; // Required for ThemeProvider
+import '../theme_provider.dart'; // Your custom ThemeProvider
 
 class AdminSettingsPage extends StatefulWidget {
   const AdminSettingsPage({super.key});
@@ -12,33 +12,37 @@ class AdminSettingsPage extends StatefulWidget {
 
 class _AdminSettingsPageState extends State<AdminSettingsPage> {
   static const Color primaryGreen = Color(0xFF6B923C);
-  static const Color loginPrimaryGreen = Color(0xFF5A7F30);
-  // static const Color lightGreen = Color(0xFFE8F5E9); // This will be dynamic now
 
   String _selectedLanguage = 'English';
 
   @override
   Widget build(BuildContext context) {
+    // Access the ThemeProvider to determine current theme mode
     final themeProvider = Provider.of<ThemeProvider>(context);
     final bool isDarkMode = themeProvider.isDarkMode;
 
-    // Define dynamic colors based on themeProvider.isDarkMode
+    // Define dynamic colors based on the theme mode
     final Color backgroundColor = isDarkMode
-        ? const Color(0xFF121212)
-        : const Color(0xFFE8F5E9);
-    final Color appBarColor = isDarkMode
-        ? const Color(0xFF1F1F1F)
-        : Colors.white;
+        ? const Color(0xFF121212) // Dark background for dark mode
+        : const Color(0xFFE8F5E9); // Light background for light mode
     final Color textColor = isDarkMode ? Colors.white70 : Colors.black87;
-    final Color headingColor = isDarkMode ? primaryGreen : loginPrimaryGreen;
-    final Color cardColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color dividerColor = isDarkMode ? Colors.grey[700]! : Colors.grey;
+    final Color headingColor = isDarkMode
+        ? primaryGreen // Primary green for headings in dark mode
+        : const Color(0xFF5A7F30); // A darker green for headings in light mode
+    final Color cardColor = isDarkMode
+        ? const Color(0xFF1E1E1E) // Darker card for dark mode
+        : Colors.white; // White card for light mode
     final Color trailingIconColor = isDarkMode
-        ? Colors.grey[400]!
-        : Colors.grey;
+        ? Colors.grey[400]! // Lighter grey for trailing icons in dark mode
+        : Colors.grey; // Default grey for light mode
+    final Color leadingIconColor = isDarkMode
+        ? primaryGreen.withOpacity(
+            0.8,
+          ) // Muted green for leading icons in dark mode
+        : primaryGreen; // Primary green for leading icons in light mode
 
     return Scaffold(
-      backgroundColor: backgroundColor, // Use dynamic background color
+      backgroundColor: backgroundColor, // Apply dynamic background color
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -54,7 +58,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: headingColor, // Use dynamic heading color
+                      color: headingColor, // Apply dynamic heading color
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -64,15 +68,15 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
             _buildSectionTitle(
               'General Settings',
-              headingColor,
-            ), // Pass headingColor
+              headingColor, // Pass dynamic heading color
+            ),
             Card(
               elevation: 2.0,
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
-              color: cardColor, // Use dynamic card color
+              color: cardColor, // Apply dynamic card color
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -80,29 +84,13 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 ),
                 child: Column(
                   children: [
-                    SwitchListTile(
-                      title: Text(
-                        'Dark Mode',
-                        style: TextStyle(color: textColor),
-                      ), // Use dynamic text color
-                      value: themeProvider.isDarkMode,
-                      onChanged: (bool value) {
-                        themeProvider.toggleDarkMode(value);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Dark Mode ${value ? 'enabled' : 'disabled'}',
-                            ),
-                          ),
-                        );
-                      },
-                      activeColor: primaryGreen,
-                    ),
                     ListTile(
                       title: Text(
                         'Language',
-                        style: TextStyle(color: textColor),
-                      ), // Use dynamic text color
+                        style: TextStyle(
+                          color: textColor,
+                        ), // Apply dynamic text color
+                      ),
                       trailing: DropdownButton<String>(
                         value: _selectedLanguage,
                         icon: Icon(Icons.arrow_drop_down, color: primaryGreen),
@@ -134,12 +122,15 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                                 value: value,
                                 child: Text(
                                   value,
-                                  style: TextStyle(color: textColor),
-                                ), // Use dynamic text color
+                                  style: TextStyle(
+                                    color: textColor,
+                                  ), // Apply dynamic text color
+                                ),
                               );
                             }).toList(),
                       ),
                     ),
+                    // Removed the SwitchListTile for Dark Mode here
                   ],
                 ),
               ),
@@ -148,15 +139,15 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             const SizedBox(height: 24),
             _buildSectionTitle(
               'Account Settings',
-              headingColor,
-            ), // Pass headingColor
+              headingColor, // Pass dynamic heading color
+            ),
             Card(
               elevation: 2.0,
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
-              color: cardColor, // Use dynamic card color
+              color: cardColor, // Apply dynamic card color
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -165,15 +156,22 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 child: Column(
                   children: [
                     ListTile(
-                      leading: Icon(Icons.lock, color: primaryGreen),
+                      leading: Icon(
+                        Icons.lock,
+                        color:
+                            leadingIconColor, // Apply dynamic leading icon color
+                      ),
                       title: Text(
                         'Change Password',
-                        style: TextStyle(color: textColor),
-                      ), // Use dynamic text color
+                        style: TextStyle(
+                          color: textColor,
+                        ), // Apply dynamic text color
+                      ),
                       trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: trailingIconColor, // Use dynamic icon color
+                        color:
+                            trailingIconColor, // Apply dynamic trailing icon color
                       ),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -185,15 +183,22 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                       },
                     ),
                     ListTile(
-                      leading: Icon(Icons.email, color: primaryGreen),
+                      leading: Icon(
+                        Icons.email,
+                        color:
+                            leadingIconColor, // Apply dynamic leading icon color
+                      ),
                       title: Text(
                         'Update Email',
-                        style: TextStyle(color: textColor),
-                      ), // Use dynamic text color
+                        style: TextStyle(
+                          color: textColor,
+                        ), // Apply dynamic text color
+                      ),
                       trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: trailingIconColor, // Use dynamic icon color
+                        color:
+                            trailingIconColor, // Apply dynamic trailing icon color
                       ),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -210,14 +215,17 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             ),
 
             const SizedBox(height: 24),
-            _buildSectionTitle('About', headingColor), // Pass headingColor
+            _buildSectionTitle(
+              'About',
+              headingColor,
+            ), // Pass dynamic heading color
             Card(
               elevation: 2.0,
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
-              color: cardColor, // Use dynamic card color
+              color: cardColor, // Apply dynamic card color
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -226,26 +234,39 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 child: Column(
                   children: [
                     ListTile(
-                      leading: Icon(Icons.info_outline, color: primaryGreen),
+                      leading: Icon(
+                        Icons.info_outline,
+                        color:
+                            leadingIconColor, // Apply dynamic leading icon color
+                      ),
                       title: Text(
                         'Version',
-                        style: TextStyle(color: textColor),
-                      ), // Use dynamic text color
+                        style: TextStyle(
+                          color: textColor,
+                        ), // Apply dynamic text color
+                      ),
                       trailing: Text(
                         '1.0.0',
-                        style: TextStyle(color: textColor),
-                      ), // Use dynamic text color
+                        style: TextStyle(
+                          color: textColor,
+                        ), // Apply dynamic text color
+                      ),
                     ),
                     ListTile(
-                      leading: Icon(Icons.policy, color: primaryGreen),
+                      leading: Icon(
+                        Icons.policy,
+                        color:
+                            leadingIconColor, // Apply dynamic leading icon color
+                      ),
                       title: Text(
                         'Privacy Policy',
                         style: TextStyle(color: textColor),
-                      ), // Use dynamic text color
+                      ), // Apply dynamic text color
                       trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: trailingIconColor, // Use dynamic icon color
+                        color:
+                            trailingIconColor, // Apply dynamic trailing icon color
                       ),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -268,7 +289,6 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
   // Helper widget for section titles
   Widget _buildSectionTitle(String title, Color color) {
-    // Accept color parameter
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0, top: 8.0, left: 8.0),
       child: Text(
@@ -276,7 +296,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: color, // Use the passed color
+          color: color, // Use the passed dynamic color
         ),
       ),
     );

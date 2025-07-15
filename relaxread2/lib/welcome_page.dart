@@ -9,8 +9,13 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fixed colors as dark mode is not needed for this page
+    const Color backgroundColor = Color(0xFFF0F2EB); // Light background
+    const Color appNameColor = Colors.black; // Dark text for app name
+    const Color taglineColor = Colors.grey; // Grey text for tagline
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2EB),
+      backgroundColor: backgroundColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -33,7 +38,7 @@ class WelcomePage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 38,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[850],
+                  color: appNameColor, // Fixed color
                   letterSpacing: 1.5,
                 ),
               ),
@@ -45,7 +50,7 @@ class WelcomePage extends StatelessWidget {
                 'Discover Malay Stories',
                 style: TextStyle(
                   fontSize: 18,
-                  color: Colors.grey[600],
+                  color: taglineColor, // Fixed color
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -93,8 +98,7 @@ class WelcomePage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const LoginPage(userType: 'User'),
+                        builder: (context) => const LoginPage(userType: 'User'),
                       ),
                     );
                   },

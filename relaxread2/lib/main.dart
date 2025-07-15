@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'admin/dashboard_page.dart';
 import 'welcome_page.dart';
 import 'theme_provider.dart'; // Make sure you created this file
 
@@ -41,7 +42,12 @@ class MyApp extends StatelessWidget {
         ),
         textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
       ),
-      home: const WelcomePage(),
+      initialRoute: '/', // Set your initial route
+      routes: {
+        '/': (context) => const WelcomePage(), // Your welcome page
+        '/admin_dashboard': (context) =>
+            const AdminDashboardPage(), // Your admin dashboard
+      },
     );
   }
 }

@@ -16,7 +16,12 @@ class _SettingsPageState extends State<SettingsPage> {
   // Define a slightly darker green for accents, consistent with Login page
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
-  void showInfoDialog(BuildContext context, String title, String content, IconData icon) {
+  void showInfoDialog(
+    BuildContext context,
+    String title,
+    String content,
+    IconData icon,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -26,7 +31,10 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(icon, color: primaryGreen),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -184,9 +192,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 trailing: Switch(
                   value: isDarkMode, // Use ThemeProvider's state
                   onChanged: (bool value) {
-                    themeProvider.toggleDarkMode(
-                      value,
-                    ); // Update ThemeProvider's state
+                    themeProvider.toggleTheme(); // Updated to toggleTheme()
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Dark Mode toggled: $value')),
                     );
@@ -195,9 +201,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 onTap: () {
                   // Tapping the ListTile itself also toggles the switch
-                  themeProvider.toggleDarkMode(
-                    !isDarkMode,
-                  ); // Toggle ThemeProvider's state
+                  themeProvider.toggleTheme(); // Updated to toggleTheme()
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Dark Mode toggled: ${!isDarkMode}'),
@@ -241,12 +245,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   size: 18,
                   color: trailingIconColor,
                 ), // Dynamic icon color
-              onTap: () => showInfoDialog(
-                context,
-                'Privacy Policy',
-                'We respect your privacy. RelaxRead only collects basic user data (such as email and favorite books) to improve your reading experience. We do not share your data with others. Your data is kept safe and only used inside this app.',
-                Icons.privacy_tip_outlined,
-              ),
+                onTap: () => showInfoDialog(
+                  context,
+                  'Privacy Policy',
+                  'We respect your privacy. RelaxRead only collects basic user data (such as email and favorite books) to improve your reading experience. We do not share your data with others. Your data is kept safe and only used inside this app.',
+                  Icons.privacy_tip_outlined,
+                ),
               ),
             ),
 
@@ -268,12 +272,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   size: 18,
                   color: trailingIconColor,
                 ), // Dynamic icon color
-              onTap: () => showInfoDialog(
-                context,
-                'Terms of Service',
-                'By using RelaxRead, you agree to:\n• Use the app respectfully\n• Not upload harmful content\n• Let us improve features using your app activity\n\nWe may suspend accounts that break the rules.',
-                Icons.description_outlined,
-              ),
+                onTap: () => showInfoDialog(
+                  context,
+                  'Terms of Service',
+                  'By using RelaxRead, you agree to:\n• Use the app respectfully\n• Not upload harmful content\n• Let us improve features using your app activity\n\nWe may suspend accounts that break the rules.',
+                  Icons.description_outlined,
+                ),
               ),
             ),
 
@@ -295,12 +299,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   size: 18,
                   color: trailingIconColor,
                 ), // Dynamic icon color
-              onTap: () => showInfoDialog(
-                context,
-                'About RelaxRead',
-                'RelaxRead is a simple ebook app focused on Malay novels and folklore.\nYou can search books, save to wishlist, like, review, and follow authors.\nThis app is developed as a student project to support local stories and reading culture.',
-                Icons.info_outline,
-              ),
+                onTap: () => showInfoDialog(
+                  context,
+                  'About RelaxRead',
+                  'RelaxRead is a simple ebook app focused on Malay novels and folklore.\nYou can search books, save to wishlist, like, review, and follow authors.\nThis app is developed as a student project to support local stories and reading culture.',
+                  Icons.info_outline,
+                ),
               ),
             ),
             const SizedBox(height: 30),
