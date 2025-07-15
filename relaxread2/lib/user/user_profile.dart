@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Import provider
 import 'package:relaxread2/login_page.dart'; // Import the login page for navigation
+import '../theme_provider.dart'; // Ensure this path is correct for ThemeProvider
 
 class UserProfilePage extends StatefulWidget {
   // Now requires userName and userEmail to be passed in
@@ -38,20 +40,54 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Access ThemeProvider to get the current theme mode
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final bool isDarkMode = themeProvider.isDarkMode;
+
+    // Define colors based on the current theme mode
+    final Color appBarColor = isDarkMode
+        ? const Color(0xFF1E1E1E)
+        : Colors.white;
+    final Color scaffoldBackgroundColor = isDarkMode
+        ? const Color(0xFF121212)
+        : const Color(0xFFF0F2EB);
+    final Color appBarTitleColor = isDarkMode
+        ? primaryGreen
+        : loginPrimaryGreen;
+    final Color textColor = isDarkMode ? Colors.white70 : Colors.grey[800]!;
+    final Color lightTextColor = isDarkMode
+        ? Colors.grey[400]!
+        : Colors.grey[600]!;
+    final Color cardBackgroundColor = isDarkMode
+        ? const Color(0xFF3A3A3A)
+        : Colors.white;
+    final Color dividerColor = isDarkMode
+        ? Colors.grey[700]!
+        : Colors.grey[300]!;
+    final Color sectionTitleColor = isDarkMode
+        ? primaryGreen
+        : loginPrimaryGreen;
+    final Color trailingIconColor = isDarkMode
+        ? Colors.grey[500]!
+        : Colors.grey;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2EB), // Consistent light background
+      backgroundColor: scaffoldBackgroundColor, // Dynamic background color
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor, // Dynamic app bar background
         elevation: 1.0,
         title: Text(
           'My Profile',
           style: TextStyle(
-            color: loginPrimaryGreen,
+            color: appBarTitleColor, // Dynamic app bar title color
             fontWeight: FontWeight.bold,
             fontSize: 22,
           ),
         ),
         centerTitle: true, // Center the title
+        iconTheme: IconThemeData(
+          color: appBarTitleColor, // Color for the back arrow icon
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -62,13 +98,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
             // User Avatar/Profile Picture
             CircleAvatar(
               radius: 60,
-              backgroundColor: primaryGreen.withOpacity(
-                0.2,
-              ), // Light green background
+              backgroundColor: isDarkMode
+                  ? primaryGreen.withOpacity(0.4)
+                  : primaryGreen.withOpacity(0.2), // Dynamic background
               child: Icon(
                 Icons.person,
                 size: 80,
-                color: primaryGreen, // Green icon
+                color: isDarkMode
+                    ? Colors.white
+                    : primaryGreen, // Dynamic icon color
               ),
               // You can replace this with an actual user image:
               // backgroundImage: NetworkImage('https://example.com/user_profile.jpg'),
@@ -84,7 +122,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: textColor, // Dynamic text color
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -109,7 +147,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
             // User Email Display
             Text(
               widget.userEmail, // Display user email passed from constructor
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 18,
+                color: lightTextColor,
+              ), // Dynamic text color
             ),
             const SizedBox(height: 40),
 
@@ -121,11 +162,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: loginPrimaryGreen,
+                  color: sectionTitleColor, // Dynamic section title color
                 ),
               ),
             ),
-            const Divider(height: 20, thickness: 1, color: Colors.grey),
+            Divider(
+              height: 20,
+              thickness: 1,
+              color: dividerColor,
+            ), // Dynamic divider color
 
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -133,16 +178,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               elevation: 2.0,
+              color: cardBackgroundColor, // Dynamic card background
               child: ListTile(
                 leading: Icon(Icons.lock_outline, color: primaryGreen),
-                title: const Text(
+                title: Text(
                   'Change Password',
-                  style: TextStyle(fontSize: 17),
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: textColor,
+                  ), // Dynamic text color
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 18,
-                  color: Colors.grey,
+                  color: trailingIconColor, // Dynamic trailing icon color
                 ),
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -158,19 +207,23 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               elevation: 2.0,
+              color: cardBackgroundColor, // Dynamic card background
               child: ListTile(
                 leading: Icon(
                   Icons.subscriptions_outlined,
                   color: primaryGreen,
                 ),
-                title: const Text(
+                title: Text(
                   'Manage Subscriptions',
-                  style: TextStyle(fontSize: 17),
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: textColor,
+                  ), // Dynamic text color
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 18,
-                  color: Colors.grey,
+                  color: trailingIconColor, // Dynamic trailing icon color
                 ),
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -186,8 +239,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               elevation: 2.0,
+              color: cardBackgroundColor, // Dynamic card background
               child: ListTile(
-                leading: Icon(
+                leading: const Icon(
                   Icons.delete_outline,
                   color: Colors.redAccent,
                 ), // Red icon for delete
@@ -195,10 +249,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   'Delete Account',
                   style: TextStyle(fontSize: 17, color: Colors.redAccent),
                 ), // Red text for delete
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 18,
-                  color: Colors.grey,
+                  color: trailingIconColor, // Dynamic trailing icon color
                 ),
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
