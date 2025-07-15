@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'user_profile.dart'; // Import the user profile page
 import 'settings_page.dart'; // Import the new settings page
+import 'wishlist_page.dart' as wishlist;
+import 'book.dart';
+import 'wishlist_page.dart';
+import 'package:relaxread2/book.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,18 +14,54 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Define the primary green color, consistent with Create Account screen
   static const Color primaryGreen = Color(0xFF6B923C);
-  // Define a slightly darker green for accents, consistent with Login page
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
-  int _selectedIndex = 0; // To keep track of the selected tab
+  int _selectedIndex = 0; 
 
-  // List of widgets corresponding to each tab in the BottomNavigationBar
-  // For now, only SettingsPage is fully implemented.
-  // You would replace the Text widgets with your actual Home, Library, and Saved pages.
+  // ✅ ⬇️ Paste this method right here!
+  Widget buildHomeTab(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // your home layout here...
+        ],
+      ),
+    );
+  }
+
+  // Dummy book list for Wishlist
+  final List<Book> featuredBooks = [
+    Book(
+      title: 'The Silent Patient',
+      author: 'Alex Michaelides',
+      imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+1',
+      personalNote: 'Psychological thriller with suspense!',
+    ),
+    Book(
+      title: 'Where the Crawdads Sing',
+      author: 'Delia Owens',
+      imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+2',
+      personalNote: 'Nature and mystery beautifully combined.',
+    ),
+    Book(
+      title: 'Project Hail Mary',
+      author: 'Andy Weir',
+      imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+3',
+      personalNote: 'Sci-fi brilliance from “The Martian” author 🚀',
+    ),
+    Book(
+      title: 'Atomic Habits',
+      author: 'James Clear',
+      imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+4',
+      personalNote: 'Simple strategies to change your life 🧠',
+    ),
+  ];
+
   List<Widget> _widgetOptions(BuildContext context) => <Widget>[
-    // Placeholder for your actual Home content
+    // 🏠 Tab 0 – Home
     SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
       child: Column(
@@ -48,10 +88,6 @@ class _HomePageState extends State<HomePage> {
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
                 borderSide: BorderSide.none,
               ),
@@ -153,33 +189,15 @@ class _HomePageState extends State<HomePage> {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
+            itemCount: featuredBooks.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 16.0,
               mainAxisSpacing: 16.0,
               childAspectRatio: 0.7,
             ),
-            itemCount: 4,
             itemBuilder: (context, index) {
-              final bookTitles = [
-                'The Silent Patient',
-                'Where the Crawdads Sing',
-                'Project Hail Mary',
-                'Atomic Habits',
-              ];
-              final bookAuthors = [
-                'Alex Michaelides',
-                'Delia Owens',
-                'Andy Weir',
-                'James Clear',
-              ];
-              final bookCoverPlaceholders = [
-                'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+1',
-                'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+2',
-                'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+3',
-                'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+4',
-              ];
-
+              final book = featuredBooks[index];
               return Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0),
@@ -188,9 +206,7 @@ class _HomePageState extends State<HomePage> {
                 child: InkWell(
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Tapped on "${bookTitles[index]}"'),
-                      ),
+                      SnackBar(content: Text('Tapped on "${book.title}"')),
                     );
                   },
                   borderRadius: BorderRadius.circular(12.0),
@@ -198,22 +214,16 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12.0),
-                        ),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12.0)),
                         child: Image.network(
-                          bookCoverPlaceholders[index],
+                          book.imageUrl,
                           height: 150,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                                height: 150,
-                                color: Colors.grey[300],
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
+                          errorBuilder: (_, __, ___) => Container(
+                            height: 150,
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                          ),
                         ),
                       ),
                       Padding(
@@ -222,21 +232,15 @@ class _HomePageState extends State<HomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              bookTitles[index],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                              book.title,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              bookAuthors[index],
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
+                              book.author,
+                              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -262,17 +266,9 @@ class _HomePageState extends State<HomePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryGreen,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 14,
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
                 elevation: 2,
               ),
             ),
@@ -280,9 +276,22 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     ),
-    const Text('Library Page Content'), // Placeholder for Library
-    const Text('Saved Page Content'), // Placeholder for Saved
-    const SettingsPage(), // Your actual SettingsPage
+
+    // 📚 Tab 1 – Library
+    const Center(child: Text('Library tab placeholder')),
+
+    // ❤️ Tab 2 – Wishlist
+    SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+      child: Column(
+        children: featuredBooks.isEmpty
+          ? [const Center(child: Text('Wishlist is empty at the moment 👀'))]
+          : featuredBooks.map((book) => WishlistCard(book: book)).toList(),
+      ),
+    ),
+
+    // ⚙️ Tab 3 – Settings
+    const SettingsPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -290,26 +299,16 @@ class _HomePageState extends State<HomePage> {
       _selectedIndex = index;
     });
 
-    // Optional: Show snackbar for each tab, or navigate if it's a new screen
     final snackBarMessages = [
       'Home tapped!',
       'Library tapped!',
-      'Saved tapped!',
+      'Wishlist tapped!',
       'Settings tapped!',
     ];
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(snackBarMessages[index])));
-
-    // If you want to push a new page on top of the current stack for settings,
-    // rather than just switching the body content, you would do this:
-    // if (index == 3) { // Assuming Settings is at index 3
-    //   Navigator.push(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => const SettingsPage()),
-    //   );
-    // }
-  }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(snackBarMessages[index])),
+    );
+  } // <-- Corrected closing bracket for _onItemTapped
 
   @override
   Widget build(BuildContext context) {
@@ -377,7 +376,7 @@ class _HomePageState extends State<HomePage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bookmark_outline),
-            label: 'Saved',
+            label: 'Wishlist',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings), // The settings icon
@@ -385,8 +384,10 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
         currentIndex: _selectedIndex, // Highlight the currently selected tab
-        onTap: _onItemTapped, // Call the method to handle tab selection
+        onTap: _onItemTapped, 
+
       ),
     );
   }
+
 }
