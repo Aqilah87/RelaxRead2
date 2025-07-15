@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'book.dart';
-import 'package:relaxread2/book.dart';
+import 'package:relaxread2/user/book.dart';
 
 class WishlistPage extends StatelessWidget {
   final List<Book> wishlist;
@@ -50,7 +50,7 @@ class WishlistCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    book.imageUrl,
+                    book.imageUrl ?? '',
                     width: 80,
                     height: 120,
                     fit: BoxFit.cover,
@@ -72,19 +72,23 @@ class WishlistCard extends StatelessWidget {
                         Text(
                           book.title,
                           style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           book.author,
-                          style:
-                              const TextStyle(fontSize: 14, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          book.personalNote,
+                          book.personalNote ?? '',
                           style: const TextStyle(fontSize: 13),
                         ),
                       ],

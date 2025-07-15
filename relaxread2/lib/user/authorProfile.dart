@@ -3,7 +3,8 @@ import 'book.dart'; // reuse your Book class
 
 class AuthorProfilePage extends StatelessWidget {
   final String authorName = 'Aisyah Rahman';
-  final String profileImageUrl = 'https://placehold.co/150x150.png?text=Aisyah'; // replace with actual
+  final String profileImageUrl =
+      'https://placehold.co/150x150.png?text=Aisyah'; // replace with actual
 
   final List<Book> booksByAuthor = [
     Book(
@@ -58,9 +59,9 @@ class AuthorProfilePage extends StatelessWidget {
             // 🔔 Follow Button
             ElevatedButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Followed!')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Followed!')));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
@@ -80,7 +81,10 @@ class AuthorProfilePage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Books by $authorName',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -97,7 +101,7 @@ class AuthorProfilePage extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
-                          book.imageUrl,
+                          book.imageUrl ?? '',
                           width: 120,
                           height: 180,
                           fit: BoxFit.cover,

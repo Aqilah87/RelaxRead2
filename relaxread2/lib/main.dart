@@ -1,27 +1,47 @@
 import 'package:flutter/material.dart';
-import 'welcome_page.dart'; // Import the WelcomePage
+import 'package:provider/provider.dart';
+import 'welcome_page.dart';
+import 'theme_provider.dart'; // Make sure you created this file
 
 void main() {
-  runApp(const MyApp()); // Added const for better performance
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key}); // Added const constructor
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
-      title: 'RelaxRead', // Updated app title
-      debugShowCheckedModeBanner:
-          false, // Optional: Hides the debug banner during development
+      title: 'RelaxRead',
+      debugShowCheckedModeBanner: false,
+      themeMode:
+          themeProvider.themeMode, // Automatically switches between light/dark
       theme: ThemeData(
-        // You can define a global theme here if needed
-        primarySwatch:
-            Colors.green, // Example: sets primary color for some widgets
+        brightness: Brightness.light,
+        primarySwatch: Colors.green,
+        scaffoldBackgroundColor: Colors.white,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home:
-          const WelcomePage(), // Set WelcomePage as the initial screen of the app
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.green,
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        cardColor: const Color(0xFF1E1E1E),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1F1F1F),
+          foregroundColor: Colors.white,
+        ),
+        textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
+      ),
+      home: const WelcomePage(),
     );
   }
 }

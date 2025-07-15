@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-// You might need to import other pages if settings lead to them, e.g.:
-// import 'user_profile_page.dart';
-// import 'about_us_page.dart';
+import 'package:provider/provider.dart'; // Import provider
+// Update the import path if ThemeProvider is located elsewhere, for example:
+import '../theme_provider.dart'; // Adjust path as needed
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -16,27 +16,26 @@ class _SettingsPageState extends State<SettingsPage> {
   // Define a slightly darker green for accents, consistent with Login page
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
-  // --- State variable for Dark Mode ---
-  // In a real app, this would likely be managed globally (e.g., via Provider, Riverpod, Bloc)
-  // and persist across app launches. For this example, it's local state.
-  bool _isDarkMode = false; // Initial state: Light mode
-
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(
+      context,
+    ); // Access ThemeProvider
+    final bool isDarkMode =
+        themeProvider.isDarkMode; // Use ThemeProvider's state
+
     // Define colors based on current theme mode
-    final Color backgroundColor = _isDarkMode
+    final Color backgroundColor = isDarkMode
         ? const Color(0xFF2C2C2C)
         : const Color(0xFFF0F2EB);
-    final Color appBarColor = _isDarkMode
+    final Color appBarColor = isDarkMode
         ? const Color(0xFF3A3A3A)
         : Colors.white;
-    final Color textColor = _isDarkMode ? Colors.white70 : Colors.black87;
-    final Color headingColor = _isDarkMode ? primaryGreen : loginPrimaryGreen;
-    final Color cardColor = _isDarkMode
-        ? const Color(0xFF3A3A3A)
-        : Colors.white;
-    final Color dividerColor = _isDarkMode ? Colors.grey[700]! : Colors.grey;
-    final Color trailingIconColor = _isDarkMode
+    final Color textColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final Color headingColor = isDarkMode ? primaryGreen : loginPrimaryGreen;
+    final Color cardColor = isDarkMode ? const Color(0xFF3A3A3A) : Colors.white;
+    final Color dividerColor = isDarkMode ? Colors.grey[700]! : Colors.grey;
+    final Color trailingIconColor = isDarkMode
         ? Colors.grey[400]!
         : Colors.grey;
 
@@ -148,7 +147,7 @@ class _SettingsPageState extends State<SettingsPage> {
               color: cardColor, // Dynamic card color
               child: ListTile(
                 leading: Icon(
-                  _isDarkMode
+                  isDarkMode
                       ? Icons.light_mode_outlined
                       : Icons.dark_mode_outlined,
                   color: primaryGreen,
@@ -158,26 +157,26 @@ class _SettingsPageState extends State<SettingsPage> {
                   style: TextStyle(fontSize: 17, color: textColor),
                 ), // Dynamic text color
                 trailing: Switch(
-                  value: _isDarkMode,
+                  value: isDarkMode, // Use ThemeProvider's state
                   onChanged: (bool value) {
-                    setState(() {
-                      _isDarkMode = value; // Update the local state
-                    });
+                    themeProvider.toggleDarkMode(
+                      value,
+                    ); // Update ThemeProvider's state
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Dark Mode toggled: $value')),
                     );
-                    // In a real app, you would notify a global theme provider here
-                    // to change the theme of the entire application.
                   },
                   activeColor: primaryGreen,
                 ),
                 onTap: () {
                   // Tapping the ListTile itself also toggles the switch
-                  setState(() {
-                    _isDarkMode = !_isDarkMode;
-                  });
+                  themeProvider.toggleDarkMode(
+                    !isDarkMode,
+                  ); // Toggle ThemeProvider's state
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Dark Mode toggled: $_isDarkMode')),
+                    SnackBar(
+                      content: Text('Dark Mode toggled: ${!isDarkMode}'),
+                    ),
                   );
                 },
               ),

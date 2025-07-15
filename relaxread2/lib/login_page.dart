@@ -1,222 +1,325 @@
 import 'package:flutter/material.dart';
-import 'create_account.dart'; // Import the create account screen for navigation
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+import 'package:relaxread2/create_account.dart'; // Import create account screen
+import 'package:relaxread2/admin/dashboard_page.dart'; // Import admin dashboard
+import 'package:relaxread2/user/homepage.dart'; // Import user homepage
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class LoginPage extends StatefulWidget {
+  final String userType; // To differentiate between Admin and User login
+
+  const LoginPage({super.key, required this.userType});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  static const Color primaryGreen = Color(0xFF6B923C);
+  static const Color loginPrimaryGreen = Color(0xFF5A7F30);
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _handleLogin() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      // Trim and lowercase entered email for consistent key generation and lookup
+      final String enteredEmail = _emailController.text.trim().toLowerCase();
+      final String enteredPassword = _passwordController.text
+          .trim(); // Password remains case-sensitive
+
+      // Retrieve stored credentials for the entered email
+      final String? storedEmail = prefs.getString('user_email_$enteredEmail');
+      final String? storedPassword = prefs.getString(
+        'user_password_$enteredEmail',
+      );
+      final String? storedUserType = prefs.getString('user_type_$enteredEmail');
+
+      // --- Debugging Prints ---
+      print('--- Login Attempt ---');
+      print('Entered Email: "$enteredEmail"');
+      print('Entered Password: "$enteredPassword"');
+      print('Stored Email (key: user_email_$enteredEmail): "$storedEmail"');
+      print(
+        'Stored Password (key: user_password_$enteredEmail): "$storedPassword"',
+      );
+      print(
+        'Stored User Type (key: user_type_$enteredEmail): "$storedUserType"',
+      );
+      print('Expected User Type for this page: "${widget.userType}"');
+      print('---------------------');
+      // --- End Debugging Prints ---
+
+      // Check if the account exists and credentials match
+      if (storedEmail == enteredEmail && storedPassword == enteredPassword) {
+        // Credentials match, now check if the stored user type matches the login page's userType
+        if (storedUserType == widget.userType) {
+          if (storedUserType == 'Admin') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Admin Login Successful!')),
+            );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AdminDashboardPage(),
+              ),
+            );
+          } else if (storedUserType == 'User') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('User Login Successful!')),
+            );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          }
+        } else {
+          // Stored user type does not match the current login page type
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Account type mismatch. Please use the correct login page for ${storedUserType ?? 'an unknown'} account.',
+              ),
+            ),
+          );
+        }
+      } else {
+        // Invalid credentials
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid email or password.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred during login: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Define a slightly different green color for the Login page
-    // This helps differentiate it from the Create Account page while maintaining theme
-    const Color loginPrimaryGreen = Color(
-      0xFF5A7F30,
-    ); // A slightly darker/different green
-
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFF0F2EB,
-      ), // Light background color for the overall screen
+      backgroundColor: const Color(0xFFF0F2EB),
+      appBar: AppBar(
+        title: Text('${widget.userType} Login'),
+        backgroundColor: loginPrimaryGreen,
+        foregroundColor: Colors.white,
+      ),
       body: Center(
-        // Center the content on the screen
         child: Card(
-          // Use Card widget for the white, rounded background
-          margin: const EdgeInsets.all(24.0), // Margin around the card
+          margin: const EdgeInsets.all(24.0),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              16.0,
-            ), // Rounded corners for the card
+            borderRadius: BorderRadius.circular(16.0),
           ),
-          elevation: 4.0, // Subtle shadow for the card
+          elevation: 4.0,
           child: SingleChildScrollView(
-            // Allow content to scroll if it overflows
             padding: const EdgeInsets.symmetric(
               horizontal: 32.0,
               vertical: 40.0,
-            ), // Padding inside the card
-            child: Column(
-              mainAxisSize:
-                  MainAxisSize.min, // Make column only take up needed space
-              crossAxisAlignment:
-                  CrossAxisAlignment.stretch, // Stretch children horizontally
-              children: [
-                Align(
-                  // Align title to the center
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Welcome Back!', // Changed title for login page
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color:
-                          loginPrimaryGreen, // Apply the new login-specific green color
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40), // Space after the title
-                // Email Address Field
-                const Text(
-                  'Email address',
-                  style: TextStyle(fontSize: 16, color: Colors.black87),
-                ),
-                const SizedBox(height: 8), // Space between label and text field
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'you@example.com', // Placeholder text
-                    isDense: true, // Make text field compact
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12.0,
-                      horizontal: 12.0,
-                    ),
-                    border: OutlineInputBorder(
-                      // Default border
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      // Border when not focused
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      // Border when focused
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Welcome Back, ${widget.userType}!',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                         color: loginPrimaryGreen,
-                        width: 2.0,
-                      ), // Use new green
+                      ),
                     ),
                   ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 24), // Space between fields
-                // Password Field
-                const Text(
-                  'Password',
-                  style: TextStyle(fontSize: 16, color: Colors.black87),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Enter password',
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12.0,
-                      horizontal: 12.0,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(
-                        color: loginPrimaryGreen,
-                        width: 2.0,
-                      ), // Use new green
-                    ),
+                  const SizedBox(height: 40),
+                  const Text(
+                    'Email address',
+                    style: TextStyle(fontSize: 16, color: Colors.black87),
                   ),
-                  obscureText: true,
-                ),
-                const SizedBox(
-                  height: 16,
-                ), // Smaller space before forgot password
-                // Forgot Password Button
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      // Forgot password action
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Forgot Password pressed!'),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      hintText: 'you@example.com',
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12.0,
+                        horizontal: 12.0,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(
+                          color: loginPrimaryGreen,
+                          width: 2.0,
                         ),
-                      );
+                      ),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your email';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
                     },
-                    style: TextButton.styleFrom(
-                      foregroundColor:
-                          loginPrimaryGreen, // Use new green for the link
-                      padding: EdgeInsets.zero, // Remove default padding
-                      minimumSize: Size.zero, // Remove minimum size constraints
-                      tapTargetSize:
-                          MaterialTapTargetSize.shrinkWrap, // Shrink tap target
-                    ),
-                    child: const Text('Forgot Password?'),
                   ),
-                ),
-                const SizedBox(height: 24), // Space before login button
-                // Login Button
-                ElevatedButton(
-                  onPressed: () {
-                    // Login action
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Login button pressed!')),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        loginPrimaryGreen, // Solid new green background
-                    foregroundColor: Colors.white, // White text color
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16.0,
-                    ), // Button padding
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        8.0,
-                      ), // Rounded corners for button
-                    ),
-                    elevation: 0, // No shadow for this button
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Password',
+                    style: TextStyle(fontSize: 16, color: Colors.black87),
                   ),
-                  child: const Text('Login'),
-                ),
-                const SizedBox(height: 12), // Space after login button
-                const SizedBox(
-                  height: 16,
-                ), // Space before "Don't have an account?"
-                // Don't have an account? Sign Up
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Don't have an account? ",
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter password',
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12.0,
+                        horizontal: 12.0,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(
+                          color: loginPrimaryGreen,
+                          width: 2.0,
+                        ),
+                      ),
                     ),
-                    TextButton(
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
                       onPressed: () {
-                        // Navigate to Create Account screen
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Navigate to Sign Up!')),
-                        );
-                        Navigator.push(
-                          // Uncommented navigation
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CreateAccountScreen(),
+                          const SnackBar(
+                            content: Text('Forgot Password pressed!'),
                           ),
                         );
                       },
                       style: TextButton.styleFrom(
-                        foregroundColor:
-                            loginPrimaryGreen, // Use new green for the link
+                        foregroundColor: loginPrimaryGreen,
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text(
-                        'Sign Up',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      child: const Text('Forgot Password?'),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 24),
+                  _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: loginPrimaryGreen,
+                          ),
+                        )
+                      : ElevatedButton(
+                          onPressed: _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: loginPrimaryGreen,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text('Login'),
+                        ),
+                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Don't have an account? ",
+                        style: TextStyle(fontSize: 16, color: Colors.black87),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Navigate to Create Account screen, passing the current userType
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CreateAccountScreen(
+                                userType: widget.userType,
+                              ),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: loginPrimaryGreen,
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

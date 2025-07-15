@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'user_profile.dart'; // Import the user profile page
-import 'settings_page.dart'; // Import the new settings page
-import 'wishlist_page.dart' as wishlist;
-import 'book.dart';
-import 'wishlist_page.dart';
-import 'package:relaxread2/book.dart';
+import 'package:relaxread2/user/user_profile.dart'; // Corrected import for user profile page
+import 'package:relaxread2/user/settings_page.dart'; // Import the new settings page
+import 'package:relaxread2/user/wishlist_page.dart'; // Import wishlist_page.dart
+import 'package:relaxread2/user/book.dart'; // Import the Book class
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,42 +15,33 @@ class _HomePageState extends State<HomePage> {
   static const Color primaryGreen = Color(0xFF6B923C);
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
-  int _selectedIndex = 0; 
+  int _selectedIndex = 0;
 
-  // ✅ ⬇️ Paste this method right here!
-  Widget buildHomeTab(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // your home layout here...
-        ],
-      ),
-    );
-  }
-
-  // Dummy book list for Wishlist
+  // Dummy book list for Wishlist and Featured Books
   final List<Book> featuredBooks = [
     Book(
+      ebookId: '1', // Add ebookId for consistency with Book model
       title: 'The Silent Patient',
       author: 'Alex Michaelides',
       imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+1',
       personalNote: 'Psychological thriller with suspense!',
     ),
     Book(
+      ebookId: '2', // Add ebookId
       title: 'Where the Crawdads Sing',
       author: 'Delia Owens',
       imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+2',
       personalNote: 'Nature and mystery beautifully combined.',
     ),
     Book(
+      ebookId: '3', // Add ebookId
       title: 'Project Hail Mary',
       author: 'Andy Weir',
       imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+3',
       personalNote: 'Sci-fi brilliance from “The Martian” author 🚀',
     ),
     Book(
+      ebookId: '4', // Add ebookId
       title: 'Atomic Habits',
       author: 'James Clear',
       imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+4',
@@ -145,7 +134,7 @@ class _HomePageState extends State<HomePage> {
                         child: InkWell(
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Category tapped!')),
+                              SnackBar(content: Text('Category tapped!')),
                             );
                           },
                           borderRadius: BorderRadius.circular(12.0),
@@ -214,15 +203,20 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12.0)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12.0),
+                        ),
                         child: Image.network(
-                          book.imageUrl,
+                          book.imageUrl ?? '',
                           height: 150,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             height: 150,
                             color: Colors.grey[300],
-                            child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey,
+                            ),
                           ),
                         ),
                       ),
@@ -233,14 +227,20 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Text(
                               book.title,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               book.author,
-                              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -266,9 +266,17 @@ class _HomePageState extends State<HomePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryGreen,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
                 elevation: 2,
               ),
             ),
@@ -285,8 +293,8 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
       child: Column(
         children: featuredBooks.isEmpty
-          ? [const Center(child: Text('Wishlist is empty at the moment 👀'))]
-          : featuredBooks.map((book) => WishlistCard(book: book)).toList(),
+            ? [const Center(child: Text('Wishlist is empty at the moment 👀'))]
+            : featuredBooks.map((book) => WishlistCard(book: book)).toList(),
       ),
     ),
 
@@ -305,10 +313,10 @@ class _HomePageState extends State<HomePage> {
       'Wishlist tapped!',
       'Settings tapped!',
     ];
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(snackBarMessages[index])),
-    );
-  } // <-- Corrected closing bracket for _onItemTapped
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(snackBarMessages[index])));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -349,11 +357,15 @@ class _HomePageState extends State<HomePage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Navigating to Profile!')),
               );
-              // Navigate to the UserProfilePage
+              // Navigate to the UserProfilePage, passing dummy user data for now
+              // In a real app, you would pass actual authenticated user data
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
+                  builder: (context) => const UserProfilePage(
+                    userName: 'Current User', // Placeholder name
+                    userEmail: 'current.user@example.com', // Placeholder email
+                  ),
                 ),
               );
             },
@@ -384,10 +396,8 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
         currentIndex: _selectedIndex, // Highlight the currently selected tab
-        onTap: _onItemTapped, 
-
+        onTap: _onItemTapped,
       ),
     );
   }
-
 }
