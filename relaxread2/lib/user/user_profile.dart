@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Import provider
-import 'package:relaxread2/login_page.dart'; // Import the login page for navigation
+import 'package:relaxread2/welcome_page.dart'; // Import the new WelcomePage
 import '../theme_provider.dart'; // Ensure this path is correct for ThemeProvider
 
 class UserProfilePage extends StatefulWidget {
@@ -29,12 +29,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Logged out successfully!')));
-    // After logging out, navigate back to the login page
+    // After logging out, navigate back to the Welcome page
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => const LoginPage(userType: 'User'),
-      ), // Navigate to User login
+        builder: (context) => const WelcomePage(), // Navigate to WelcomePage
+      ),
     );
   }
 

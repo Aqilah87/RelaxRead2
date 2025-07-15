@@ -15,6 +15,71 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
   String _selectedLanguage = 'English';
 
+  // Define the showInfoDialog method here
+  void showInfoDialog(
+    BuildContext context,
+    String title,
+    String content,
+    IconData icon,
+  ) {
+    // Access the ThemeProvider to determine current theme mode for the dialog
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final bool isDarkMode = themeProvider.isDarkMode;
+
+    final Color dialogBackgroundColor = isDarkMode
+        ? const Color(0xFF1E1E1E)
+        : Colors.white;
+    final Color dialogTextColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final Color dialogIconColor = isDarkMode
+        ? primaryGreen
+        : primaryGreen; // Can be dynamic too
+    final Color dialogButtonColor =
+        primaryGreen; // Button color usually remains consistent
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor:
+              dialogBackgroundColor, // Apply dialog background color
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          title: Row(
+            children: [
+              Icon(icon, color: dialogIconColor),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  color: dialogTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            content,
+            style: TextStyle(color: dialogTextColor), // Apply dialog text color
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Close',
+                style: TextStyle(
+                  color: dialogButtonColor,
+                ), // Apply button color
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Access the ThemeProvider to determine current theme mode
@@ -268,14 +333,13 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                         color:
                             trailingIconColor, // Apply dynamic trailing icon color
                       ),
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Opening Privacy Policy...'),
-                          ),
-                        );
-                        // Implement navigation/launch URL for privacy policy
-                      },
+                      onTap: () => showInfoDialog(
+                        // This calls the method you just defined
+                        context,
+                        'Privacy Policy',
+                        'We respect your privacy. RelaxRead only collects basic user data (such as email and favorite books) to improve your reading experience. We do not share your data with others. Your data is kept safe and only used inside this app.',
+                        Icons.privacy_tip_outlined,
+                      ),
                     ),
                   ],
                 ),

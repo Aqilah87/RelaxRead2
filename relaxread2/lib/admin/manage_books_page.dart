@@ -1,4 +1,3 @@
-// lib/manage_books_page.dart
 import 'package:flutter/material.dart';
 import 'ebook_form_page.dart';
 import 'package:relaxread2/user/book.dart'; // Ensure Book class is imported correctly
