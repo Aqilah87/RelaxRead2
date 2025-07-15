@@ -1,7 +1,9 @@
 // lib/ebook_form_page.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Add this import
 import 'package:uuid/uuid.dart'; // Make sure you have uuid in your pubspec.yaml
 import 'package:relaxread2/user/book.dart'; // Assuming this is where your Book class is defined
+import '../theme_provider.dart'; // Add this import
 
 class EbookFormPage extends StatefulWidget {
   final Book? ebook; // Nullable for adding, non-null for editing
@@ -15,9 +17,6 @@ class EbookFormPage extends StatefulWidget {
 class _EbookFormPageState extends State<EbookFormPage> {
   static const Color primaryGreen = Color(0xFF6B923C);
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
-  static const Color lightGreen = Color(
-    0xFFE8F5E9,
-  ); // A lighter shade for backgrounds
 
   final _formKey = GlobalKey<FormState>();
 
@@ -36,7 +35,6 @@ class _EbookFormPageState extends State<EbookFormPage> {
   void initState() {
     super.initState();
 
-    // Initialize controllers with existing ebook data if editing
     _titleController = TextEditingController(text: widget.ebook?.title ?? '');
     _authorController = TextEditingController(text: widget.ebook?.author ?? '');
     _imageUrlController = TextEditingController(
@@ -52,7 +50,7 @@ class _EbookFormPageState extends State<EbookFormPage> {
       text: widget.ebook?.month_publish ?? '',
     );
     _yearPublisherController = TextEditingController(
-      text: widget.ebook?.yearPublisher ?? '',
+      text: widget.ebook?.yearPublisher?.toString() ?? '',
     );
     _publisherController = TextEditingController(
       text: widget.ebook?.publisher ?? '',
@@ -73,302 +71,292 @@ class _EbookFormPageState extends State<EbookFormPage> {
   }
 
   void _saveEbook() {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isSaving = true;
-    });
-
-    final String currentEbookId = widget.ebook?.ebookId ?? const Uuid().v4();
-
-    final newOrUpdatedBook = Book(
-      ebookId: currentEbookId,
-      title: _titleController.text,
-      author: _authorController.text,
-      imageUrl: _imageUrlController.text.isNotEmpty
-          ? _imageUrlController.text
-          : null,
-      personalNote: _personalNoteController.text.isNotEmpty
-          ? _personalNoteController.text
-          : null,
-      pageNumber: int.tryParse(_pageNumberController.text),
-      month_publish: _monthPublishController.text.isNotEmpty
-          ? _monthPublishController.text
-          : null,
-      yearPublisher: _yearPublisherController.text.isNotEmpty
-          ? _yearPublisherController.text
-          : null,
-      publisher: _publisherController.text.isNotEmpty
-          ? _publisherController.text
-          : null,
-    );
-
-    Future.delayed(const Duration(milliseconds: 800)).then((_) {
-      // Increased delay for visual effect
+    if (_formKey.currentState!.validate()) {
       setState(() {
-        if (widget.ebook == null) {
-          globalEbooks.add(newOrUpdatedBook);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ebook added successfully!')),
-          );
-        } else {
-          final index = globalEbooks.indexWhere(
-            (b) => b.ebookId == widget.ebook!.ebookId,
-          );
-          if (index != -1) {
-            globalEbooks[index] = newOrUpdatedBook;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Ebook updated successfully!')),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Error: Ebook not found for update!'),
-              ),
-            );
-          }
-        }
-        _isSaving = false;
+        _isSaving = true;
       });
-      Navigator.of(context).pop();
-    });
+
+      // Generate a new ID if adding, otherwise use existing
+      final String ebookId = widget.ebook?.ebookId ?? const Uuid().v4();
+
+      final newEbook = Book(
+        ebookId: ebookId,
+        title: _titleController.text,
+        author: _authorController.text,
+        imageUrl: _imageUrlController.text,
+        personalNote: _personalNoteController.text,
+        pageNumber: int.tryParse(_pageNumberController.text),
+        month_publish: _monthPublishController.text,
+        yearPublisher: _yearPublisherController.text,
+        publisher: _publisherController.text,
+      );
+
+      // In a real application, you would send this to a database or API
+      // For this example, we'll just print it and pop
+      print('Saving Ebook: $newEbook');
+
+      // Simulate a network request
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() {
+            _isSaving = false;
+          });
+          Navigator.pop(context, newEbook); // Pass the new/updated ebook back
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final bool isDarkMode = themeProvider.isDarkMode;
+
+    // Dynamic colors based on theme
+    final Color backgroundColor = isDarkMode
+        ? const Color(0xFF121212)
+        : const Color(0xFFE8F5E9); // Light green for light mode
+    final Color appBarColor = isDarkMode
+        ? const Color(0xFF1F1F1F)
+        : Colors.white;
+    final Color textColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final Color headingColor = isDarkMode ? primaryGreen : loginPrimaryGreen;
+    final Color inputFillColor = isDarkMode
+        ? const Color(0xFF2C2C2C)
+        : Colors.white;
+    final Color inputBorderColor = isDarkMode
+        ? Colors.grey[600]!
+        : primaryGreen.withOpacity(0.4);
+    final Color focusedInputBorderColor = isDarkMode
+        ? primaryGreen
+        : loginPrimaryGreen;
+
     return Scaffold(
-      backgroundColor: lightGreen, // Lighter background for the form page
+      backgroundColor: backgroundColor, // Use dynamic background color
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 2.0, // Slightly more prominent shadow
+        backgroundColor: appBarColor, // Use dynamic app bar color
+        elevation: 1.0,
         title: Text(
           widget.ebook == null ? 'Add New Ebook' : 'Edit Ebook',
           style: TextStyle(
-            color: loginPrimaryGreen,
+            color: headingColor, // Use dynamic heading color
             fontWeight: FontWeight.bold,
             fontSize: 22,
           ),
         ),
-        centerTitle: true, // Center the title
-        iconTheme: IconThemeData(color: loginPrimaryGreen), // Back button color
+        centerTitle: true,
+        iconTheme: IconThemeData(color: headingColor), // Back button color
       ),
-      body: Stack(
-        // Use Stack for the loading overlay
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0), // Increased padding
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Decorative header
-                  Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          widget.ebook == null ? Icons.library_add : Icons.book,
-                          size: 80,
-                          color: primaryGreen,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          widget.ebook == null
-                              ? 'Enter Ebook Details'
-                              : 'Edit Ebook Information',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: primaryGreen,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-
-                  // General Information Section
-                  _buildSectionTitle('General Information'),
-                  _buildTextField(
-                    _titleController,
-                    'Title',
-                    'Please enter the ebook title',
-                    icon: Icons.title,
-                  ),
-                  _buildTextField(
-                    _authorController,
-                    'Author',
-                    'Please enter the author\'s name',
-                    icon: Icons.person,
-                  ),
-                  _buildTextField(
-                    _imageUrlController,
-                    'Image URL',
-                    'Please enter an image URL',
-                    isOptional: true,
-                    icon: Icons.image,
-                  ),
-                  _buildTextField(
-                    _personalNoteController,
-                    'Personal Note',
-                    'Add a personal note about the ebook',
-                    isOptional: true,
-                    maxLines: 3,
-                    icon: Icons.note,
-                  ),
-                  _buildTextField(
-                    _pageNumberController,
-                    'Page Number',
-                    'Please enter the number of pages',
-                    keyboardType: TextInputType.number,
-                    isOptional: true,
-                    icon: Icons.pages,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Publication Details Section
-                  _buildSectionTitle('Publication Details'),
-                  _buildTextField(
-                    _monthPublishController,
-                    'Month Published',
-                    'e.g., January, March',
-                    isOptional: true,
-                    icon: Icons.calendar_month,
-                  ),
-                  _buildTextField(
-                    _yearPublisherController,
-                    'Year Published',
-                    'e.g., 2023',
-                    keyboardType: TextInputType.number,
-                    isOptional: true,
-                    icon: Icons.date_range,
-                  ),
-                  _buildTextField(
-                    _publisherController,
-                    'Publisher',
-                    'e.g., Penguin Random House',
-                    isOptional: true,
-                    icon: Icons.business,
-                  ),
-                  const SizedBox(height: 40),
-
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: _isSaving
-                          ? null
-                          : _saveEbook, // Disable button while saving
-                      icon: _isSaving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Icon(Icons.save),
-                      label: Text(
-                        widget.ebook == null ? 'Add Ebook' : 'Save Changes',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryGreen,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32, // Increased horizontal padding
-                          vertical: 16, // Increased vertical padding
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            12.0,
-                          ), // More rounded corners
-                        ),
-                        elevation: 5, // More prominent shadow
-                        shadowColor: primaryGreen.withOpacity(
-                          0.4,
-                        ), // Custom shadow color
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Loading Overlay
-          if (_isSaving)
-            Container(
-              color: Colors.black.withOpacity(0.4), // Translucent black overlay
-              child: const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Icon(
+                  widget.ebook == null ? Icons.add_box : Icons.edit,
+                  size: 80,
+                  color: primaryGreen,
                 ),
               ),
-            ),
-        ],
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  widget.ebook == null
+                      ? 'Enter Ebook Details'
+                      : 'Update Ebook Details',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: headingColor, // Use dynamic heading color
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildSectionTitle(
+                'Book Details',
+                headingColor,
+              ), // Pass headingColor
+              _buildTextField(
+                controller: _titleController,
+                labelText: 'Title',
+                icon: Icons.title,
+                textColor: textColor,
+                inputFillColor: inputFillColor,
+                inputBorderColor: inputBorderColor,
+                focusedInputBorderColor: focusedInputBorderColor,
+              ),
+              _buildTextField(
+                controller: _authorController,
+                labelText: 'Author',
+                icon: Icons.person,
+                textColor: textColor,
+                inputFillColor: inputFillColor,
+                inputBorderColor: inputBorderColor,
+                focusedInputBorderColor: focusedInputBorderColor,
+              ),
+              _buildTextField(
+                controller: _imageUrlController,
+                labelText: 'Image URL',
+                icon: Icons.image,
+                isOptional: true,
+                textColor: textColor,
+                inputFillColor: inputFillColor,
+                inputBorderColor: inputBorderColor,
+                focusedInputBorderColor: focusedInputBorderColor,
+              ),
+              _buildTextField(
+                controller: _personalNoteController,
+                labelText: 'Personal Note',
+                icon: Icons.note,
+                isOptional: true,
+                maxLines: 3,
+                textColor: textColor,
+                inputFillColor: inputFillColor,
+                inputBorderColor: inputBorderColor,
+                focusedInputBorderColor: focusedInputBorderColor,
+              ),
+              _buildTextField(
+                controller: _pageNumberController,
+                labelText: 'Page Number',
+                icon: Icons.pages,
+                keyboardType: TextInputType.number,
+                isOptional: true,
+                textColor: textColor,
+                inputFillColor: inputFillColor,
+                inputBorderColor: inputBorderColor,
+                focusedInputBorderColor: focusedInputBorderColor,
+              ),
+              _buildTextField(
+                controller: _monthPublishController,
+                labelText: 'Month Published (e.g., January)',
+                icon: Icons.calendar_today,
+                isOptional: true,
+                textColor: textColor,
+                inputFillColor: inputFillColor,
+                inputBorderColor: inputBorderColor,
+                focusedInputBorderColor: focusedInputBorderColor,
+              ),
+              _buildTextField(
+                controller: _yearPublisherController,
+                labelText: 'Year Published',
+                icon: Icons.date_range,
+                keyboardType: TextInputType.number,
+                isOptional: true,
+                textColor: textColor,
+                inputFillColor: inputFillColor,
+                inputBorderColor: inputBorderColor,
+                focusedInputBorderColor: focusedInputBorderColor,
+              ),
+              _buildTextField(
+                controller: _publisherController,
+                labelText: 'Publisher',
+                icon: Icons.business,
+                isOptional: true,
+                textColor: textColor,
+                inputFillColor: inputFillColor,
+                inputBorderColor: inputBorderColor,
+                focusedInputBorderColor: focusedInputBorderColor,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isSaving ? null : _saveEbook,
+                  icon: _isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Icon(
+                          widget.ebook == null ? Icons.add_circle : Icons.save,
+                          color: Colors.white,
+                        ),
+                  label: Text(
+                    _isSaving
+                        ? 'Saving...'
+                        : widget.ebook == null
+                        ? 'Add Ebook'
+                        : 'Save Changes',
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryGreen, // Consistent button color
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  // Helper widget for text fields with enhanced decoration
-  Widget _buildTextField(
-    TextEditingController controller,
-    String labelText,
-    String hintText, {
-    TextInputType keyboardType = TextInputType.text,
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String labelText,
+    required IconData icon,
     bool isOptional = false,
+    TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
-    IconData? icon, // Optional icon for the text field
+    required Color textColor,
+    required Color inputFillColor,
+    required Color inputBorderColor,
+    required Color focusedInputBorderColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 10.0,
-      ), // Increased vertical padding
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
+        style: TextStyle(color: textColor), // Dynamic text color
         decoration: InputDecoration(
           labelText: labelText,
-          hintText: hintText, // Added hint text
-          floatingLabelStyle: TextStyle(
-            color: primaryGreen,
-            fontWeight: FontWeight.bold,
-          ),
-          prefixIcon: icon != null
-              ? Icon(icon, color: primaryGreen.withOpacity(0.7))
-              : null, // Added prefix icon
+          labelStyle: TextStyle(
+            color: textColor.withOpacity(0.8),
+          ), // Dynamic label color
+          prefixIcon: Icon(icon, color: primaryGreen), // Consistent icon color
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide(color: primaryGreen.withOpacity(0.6)),
+            borderSide: BorderSide(
+              color: inputBorderColor,
+            ), // Dynamic border color
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
             borderSide: BorderSide(
-              color: loginPrimaryGreen,
+              color: focusedInputBorderColor, // Dynamic focused border color
               width: 2.5,
-            ), // Thicker focused border
+            ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide(color: primaryGreen.withOpacity(0.4)),
+            borderSide: BorderSide(
+              color: inputBorderColor,
+            ), // Dynamic enabled border color
           ),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: inputFillColor, // Dynamic fill color
           contentPadding: const EdgeInsets.symmetric(
             vertical: 16.0,
             horizontal: 16.0,
-          ), // More padding inside
+          ),
         ),
         validator: (value) {
           if (!isOptional && (value == null || value.isEmpty)) {
-            return 'Please enter $labelText'; // More specific validation message
+            return 'Please enter $labelText';
           }
           if (keyboardType == TextInputType.number &&
               value != null &&
@@ -383,7 +371,7 @@ class _EbookFormPageState extends State<EbookFormPage> {
   }
 
   // Helper widget for section titles
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0, top: 8.0),
       child: Text(
@@ -391,7 +379,7 @@ class _EbookFormPageState extends State<EbookFormPage> {
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: loginPrimaryGreen,
+          color: color, // Use the passed color
         ),
       ),
     );
