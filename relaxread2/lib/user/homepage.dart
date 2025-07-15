@@ -21,31 +21,31 @@ class _HomePageState extends State<HomePage> {
   final List<Book> featuredBooks = [
     Book(
       ebookId: '1', // Add ebookId for consistency with Book model
-      title: 'The Silent Patient',
-      author: 'Alex Michaelides',
+      title: 'Calon Ister Tuan Haider',
+      author: 'Zati Mohd',
       imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+1',
-      personalNote: 'Psychological thriller with suspense!',
+    personalNote: 'A heartfelt romance with emotional depth — where love, healing, and fatherhood intertwine unexpectedly.',
     ),
     Book(
       ebookId: '2', // Add ebookId
-      title: 'Where the Crawdads Sing',
-      author: 'Delia Owens',
+      title: 'My Bae.. Tengku Fahd',
+      author: 'Zati Mohd',
       imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+2',
-      personalNote: 'Nature and mystery beautifully combined.',
+    personalNote: 'A messy marriage of fate and heartbreak — when drama, exes, and secrets collide with unexpected love.',
     ),
     Book(
       ebookId: '3', // Add ebookId
-      title: 'Project Hail Mary',
-      author: 'Andy Weir',
+      title: 'Sekecewa Apa Pun Kau',
+      author: 'Alyn',
       imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+3',
-      personalNote: 'Sci-fi brilliance from “The Martian” author 🚀',
+    personalNote: 'A bitter-sweet tale of betrayal and resilience — where love is tested, dignity is shattered, and healing becomes the hardest chapter.',
     ),
     Book(
       ebookId: '4', // Add ebookId
-      title: 'Atomic Habits',
-      author: 'James Clear',
+      title: 'Bos Paling Romantik',
+      author: 'Crystal Anabella',
       imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+4',
-      personalNote: 'Simple strategies to change your life 🧠',
+    personalNote: 'A playful enemies-to-lovers romance packed with teasing, tension, and one dangerously charming boss.',
     ),
   ];
 

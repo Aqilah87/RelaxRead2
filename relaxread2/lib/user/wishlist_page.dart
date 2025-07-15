@@ -14,7 +14,7 @@ class WishlistPage extends StatelessWidget {
       child: wishlist.isEmpty
           ? const Center(
               child: Text(
-                'Wishlist kosong buat masa ni 👀',
+                'Wishlist is empty at the moment 👀',
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             )

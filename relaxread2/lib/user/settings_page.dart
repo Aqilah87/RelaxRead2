@@ -16,6 +16,31 @@ class _SettingsPageState extends State<SettingsPage> {
   // Define a slightly darker green for accents, consistent with Login page
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
+  void showInfoDialog(BuildContext context, String title, String content, IconData icon) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(icon, color: primaryGreen),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+        content: Text(content, style: const TextStyle(fontSize: 16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(
@@ -216,13 +241,15 @@ class _SettingsPageState extends State<SettingsPage> {
                   size: 18,
                   color: trailingIconColor,
                 ), // Dynamic icon color
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Privacy Policy!')),
-                  );
-                },
+              onTap: () => showInfoDialog(
+                context,
+                'Privacy Policy',
+                'We respect your privacy. RelaxRead only collects basic user data (such as email and favorite books) to improve your reading experience. We do not share your data with others. Your data is kept safe and only used inside this app.',
+                Icons.privacy_tip_outlined,
+              ),
               ),
             ),
+
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               shape: RoundedRectangleBorder(
@@ -241,13 +268,15 @@ class _SettingsPageState extends State<SettingsPage> {
                   size: 18,
                   color: trailingIconColor,
                 ), // Dynamic icon color
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Terms of Service!')),
-                  );
-                },
+              onTap: () => showInfoDialog(
+                context,
+                'Terms of Service',
+                'By using RelaxRead, you agree to:\n• Use the app respectfully\n• Not upload harmful content\n• Let us improve features using your app activity\n\nWe may suspend accounts that break the rules.',
+                Icons.description_outlined,
+              ),
               ),
             ),
+
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               shape: RoundedRectangleBorder(
@@ -266,11 +295,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   size: 18,
                   color: trailingIconColor,
                 ), // Dynamic icon color
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('About RelaxRead!')),
-                  );
-                },
+              onTap: () => showInfoDialog(
+                context,
+                'About RelaxRead',
+                'RelaxRead is a simple ebook app focused on Malay novels and folklore.\nYou can search books, save to wishlist, like, review, and follow authors.\nThis app is developed as a student project to support local stories and reading culture.',
+                Icons.info_outline,
+              ),
               ),
             ),
             const SizedBox(height: 30),
