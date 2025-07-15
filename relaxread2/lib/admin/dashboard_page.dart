@@ -266,8 +266,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     leading: Icon(Icons.logout, color: Colors.red),
                     title: Text('Logout', style: TextStyle(color: Colors.red)),
                     onTap: () {
+                      // Implement logout logic here
                       Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/welcome', // Replace with your actual welcome page route
+                        '/', // Changed to '/' to go to the root (WelcomePage)
                         (Route<dynamic> route) => false,
                       );
                       // You might also want to clear user session data here
