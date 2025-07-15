@@ -39,35 +39,6 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
     return Scaffold(
       backgroundColor: backgroundColor, // Use dynamic background color
-      appBar: AppBar(
-        backgroundColor: appBarColor, // Use dynamic app bar color
-        elevation: 1.0,
-        title: Text(
-          'Admin Settings',
-          style: TextStyle(
-            color: headingColor, // Use dynamic heading color for title
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        centerTitle: true,
-        iconTheme: IconThemeData(color: headingColor), // Back button color
-        // Add a custom leading icon to override default back button behavior
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            // Navigate to the DashboardPage and remove all previous routes
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AdminDashboardPage(),
-              ),
-              (Route<dynamic> route) =>
-                  false, // Remove all routes until DashboardPage is the only one
-            );
-          },
-        ),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

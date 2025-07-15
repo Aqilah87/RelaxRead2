@@ -4,6 +4,16 @@ import 'ebook_form_page.dart';
 import 'review_management_page.dart';
 import 'settings_page_admin.dart';
 import 'package:relaxread2/user/book.dart';
+import 'manage_books_page.dart'; // Import the ManageBooksPage
+
+// Placeholder for globalReviews, similar to globalEbooks
+// In a real application, you would fetch these from a database or API.
+List<dynamic> globalReviews = [
+  // Example reviews
+  {'id': '1', 'text': 'Great book!', 'rating': 5},
+  {'id': '2', 'text': 'Could be better.', 'rating': 3},
+  {'id': '3', 'text': 'Amazing read.', 'rating': 5},
+];
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -25,16 +35,86 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     {'label': 'Settings', 'icon': Icons.settings},
   ];
 
+  // State to manage the list of books
+  List<Book> _allBooks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with some dummy data or load from persistence
+    _allBooks = [
+      Book(
+        ebookId: '1',
+        title: 'The Great Gatsby',
+        author: 'F. Scott Fitzgerald',
+        publisher: 'Scribner',
+        yearPublisher: '1925',
+        pageNumber: 180,
+        imageUrl:
+            'https://images-na.ssl-images-amazon.com/images/I/41Kq41nI6AL._SX322_BO1,204,203,200_.jpg',
+      ),
+      Book(
+        ebookId: '2',
+        title: '1984',
+        author: 'George Orwell',
+        publisher: 'Secker & Warburg',
+        yearPublisher: '1949',
+        pageNumber: 328,
+        imageUrl:
+            'https://images-na.ssl-images-amazon.com/images/I/41Kq41nI6AL._SX322_BO1,204,203,200_.jpg',
+      ),
+      Book(
+        ebookId: '3',
+        title: 'To Kill a Mockingbird',
+        author: 'Harper Lee',
+        publisher: 'J. B. Lippincott & Co.',
+        yearPublisher: '1960',
+        pageNumber: 281,
+        imageUrl:
+            'https://images-na.ssl-images-amazon.com/images/I/41Kq41nI6AL._SX322_BO1,204,203,200_.jpg',
+      ),
+    ];
+  }
+
+  void _addBook(Book newBook) {
+    setState(() {
+      _allBooks.add(newBook);
+    });
+  }
+
+  void _updateBook(Book updatedBook) {
+    setState(() {
+      final index = _allBooks.indexWhere(
+        (book) => book.ebookId == updatedBook.ebookId,
+      );
+      if (index != -1) {
+        _allBooks[index] = updatedBook;
+      }
+    });
+  }
+
+  void _deleteBook(String ebookId) {
+    setState(() {
+      _allBooks.removeWhere((book) => book.ebookId == ebookId);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final int totalUsers = 1250;
     final int totalAdmins = 5;
     final int totalReviews = globalReviews.length;
-    final int totalEbooks = globalEbooks.length;
+    final int totalEbooks =
+        _allBooks.length; // Use the internal _allBooks length
 
     final List<Widget> pages = [
       _buildDashboardPage(totalUsers, totalAdmins, totalReviews, totalEbooks),
-      const Center(child: Text('Manage Books Page Placeholder')),
+      ManageBooksPage(
+        initialEbooks: _allBooks,
+        onBookAdded: _addBook,
+        onBookUpdated: _updateBook,
+        onBookDeleted: _deleteBook,
+      ), // Pass data and callbacks
       const ReviewManagementPage(),
       const AdminSettingsPage(),
     ];

@@ -188,7 +188,7 @@ class _ReviewManagementPageState extends State<ReviewManagementPage> {
               hintText: 'Search reviews by reviewer or content...',
               prefixIcon: Icon(Icons.search, color: primaryGreen),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: const Color.fromARGB(255, 234, 232, 232),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
                 borderSide: BorderSide.none,
