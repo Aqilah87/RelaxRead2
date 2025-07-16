@@ -47,7 +47,7 @@ class _EbookFormPageState extends State<EbookFormPage> {
       text: widget.ebook?.pageNumber?.toString() ?? '',
     );
     _monthPublishController = TextEditingController(
-      text: widget.ebook?.month_publish ?? '',
+      text: widget.ebook?.monthPublish ?? '',
     );
     _yearPublisherController = TextEditingController(
       text: widget.ebook?.yearPublisher?.toString() ?? '',
@@ -86,7 +86,7 @@ class _EbookFormPageState extends State<EbookFormPage> {
         imageUrl: _imageUrlController.text,
         personalNote: _personalNoteController.text,
         pageNumber: int.tryParse(_pageNumberController.text),
-        month_publish: _monthPublishController.text,
+        monthPublish: _monthPublishController.text,
         yearPublisher: _yearPublisherController.text,
         publisher: _publisherController.text,
       );

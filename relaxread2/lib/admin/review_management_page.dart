@@ -1,14 +1,16 @@
-// lib/review_management_page.dart
 import 'package:flutter/material.dart';
-import 'package:relaxread2/user/book.dart'; // Assuming Book class is here
+import 'package:relaxread2/user/book.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Placeholder Review class for demonstration
+final supabase = Supabase.instance.client;
+
+// Review model class
 class Review {
   final String reviewId;
-  final String ebookId; // Link to the book
+  final String ebookId;
   final String reviewerName;
   final String reviewText;
-  final double rating; // 1.0 to 5.0
+  final double rating;
   final DateTime reviewDate;
 
   Review({
@@ -19,36 +21,19 @@ class Review {
     required this.rating,
     required this.reviewDate,
   });
-}
 
-// Assuming globalReviews is a List<Review> defined in global_data.dart
-// For demonstration, let's add some dummy review data
-List<Review> globalReviews = [
-  Review(
-    reviewId: 'rev1',
-    ebookId: '1', // Assuming an ebook with ID '1' exists
-    reviewerName: 'Alice Smith',
-    reviewText: 'A truly captivating read! Highly recommended.',
-    rating: 4.5,
-    reviewDate: DateTime(2023, 10, 26),
-  ),
-  Review(
-    reviewId: 'rev2',
-    ebookId: '2', // Assuming an ebook with ID '2' exists
-    reviewerName: 'Bob Johnson',
-    reviewText: 'Enjoyed the plot, but some characters felt underdeveloped.',
-    rating: 3.0,
-    reviewDate: DateTime(2023, 11, 15),
-  ),
-  Review(
-    reviewId: 'rev3',
-    ebookId: '1',
-    reviewerName: 'Charlie Brown',
-    reviewText: 'Could not put it down! A masterpiece.',
-    rating: 5.0,
-    reviewDate: DateTime(2024, 1, 5),
-  ),
-];
+  // Convert from Map to Review
+  factory Review.fromMap(Map<String, dynamic> map) {
+    return Review(
+      reviewId: map['review_id'] ?? '',
+      ebookId: map['ebook_id'] ?? '',
+      reviewerName: map['reviewer_name'] ?? 'Anonymous',
+      reviewText: map['review_text'] ?? '',
+      rating: (map['rating'] ?? 0.0).toDouble(),
+      reviewDate: DateTime.parse(map['created_at'] ?? DateTime.now().toString()),
+    );
+  }
+}
 
 class ReviewManagementPage extends StatefulWidget {
   const ReviewManagementPage({super.key});
@@ -58,20 +43,17 @@ class ReviewManagementPage extends StatefulWidget {
 }
 
 class _ReviewManagementPageState extends State<ReviewManagementPage> {
-  static const Color primaryGreen = Color(0xFF6B923C);
-  static const Color loginPrimaryGreen = Color(0xFF5A7F30);
-
+  final Color primaryGreen = const Color(0xFF6B923C);
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-
-  List<Review> _currentReviews =
-      []; // Local list to display, filtered by search
+  List<Review> _currentReviews = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    _loadReviews(); // Initial load
+    _loadReviews();
   }
 
   @override
@@ -81,250 +63,242 @@ class _ReviewManagementPageState extends State<ReviewManagementPage> {
     super.dispose();
   }
 
-  void _onSearchChanged() {
-    setState(() {
-      _searchQuery = _searchController.text;
-      _filterReviews(); // Re-filter when search query changes
-    });
-  }
+  Future<void> _loadReviews() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await supabase
+          .from('reviews')
+          .select('*')
+          .order('created_at', ascending: false);
 
-  void _loadReviews() {
-    setState(() {
-      _currentReviews = List.from(globalReviews); // Make a mutable copy
-      _filterReviews(); // Apply initial filter
-    });
-  }
-
-  void _filterReviews() {
-    if (_searchQuery.isEmpty) {
-      _currentReviews = List.from(globalReviews);
-    } else {
-      _currentReviews = globalReviews.where((review) {
-        final reviewerName = review.reviewerName.toLowerCase();
-        final reviewText = review.reviewText.toLowerCase();
-        final query = _searchQuery.toLowerCase();
-        // You might also want to search by book title, which would require
-        // fetching the book details based on review.ebookId
-        return reviewerName.contains(query) || reviewText.contains(query);
-      }).toList();
+      if (response != null && response is List) {
+        final reviews = response.map((r) => Review.fromMap(r)).toList();
+        setState(() {
+          _currentReviews = reviews;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showErrorSnackbar('Failed to load reviews: $e');
     }
   }
 
-  // Function to delete a review from in-memory list
-  void _deleteReview(String reviewId) {
-    setState(() {
-      globalReviews.removeWhere((review) => review.reviewId == reviewId);
-      _filterReviews(); // Re-filter the displayed list
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Review deleted successfully!')),
+  void _onSearchChanged() {
+    setState(() => _searchQuery = _searchController.text.toLowerCase());
+  }
+
+  List<Review> get _filteredReviews {
+    if (_searchQuery.isEmpty) return _currentReviews;
+    return _currentReviews.where((review) {
+      return review.reviewerName.toLowerCase().contains(_searchQuery) ||
+          review.reviewText.toLowerCase().contains(_searchQuery);
+    }).toList();
+  }
+
+  Future<void> _deleteReview(String reviewId) async {
+    try {
+      await supabase.from('reviews').delete().eq('review_id', reviewId);
+      setState(() {
+        _currentReviews.removeWhere((r) => r.reviewId == reviewId);
+      });
+      _showSuccessSnackbar('Review deleted successfully');
+    } catch (e) {
+      _showErrorSnackbar('Failed to delete review: $e');
+    }
+  }
+
+  Future<void> _showDeleteDialog(Review review) async {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Review'),
+        content: Text(
+          'Delete review by ${review.reviewerName}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteReview(review.reviewId);
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  // Confirmation dialog for deletion
-  Future<void> _showDeleteConfirmationDialog(
-    String reviewId,
-    String reviewerName,
-  ) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: const Text('Confirm Deletion'),
-          content: Text(
-            'Are you sure you want to delete the review by "$reviewerName"? This action cannot be undone.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel', style: TextStyle(color: primaryGreen)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+  void _showSuccessSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  Future<String> _getBookTitle(String ebookId) async {
+    try {
+      final response = await supabase
+          .from('books')
+          .select('title')
+          .eq('ebook_id', ebookId)
+          .single();
+
+      return response['title'] ?? 'Unknown Book';
+    } catch (e) {
+      return 'Unknown Book';
+    }
+  }
+
+  Widget _buildReviewCard(Review review) {
+    return FutureBuilder<String>(
+      future: _getBookTitle(review.ebookId),
+      builder: (context, snapshot) {
+        final bookTitle = snapshot.data ?? 'Loading...';
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  bookTitle,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _deleteReview(reviewId);
-              },
-              child: const Text('Delete'),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'By: ${review.reviewerName}',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 18),
+                        Text(' ${review.rating}'),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  review.reviewText,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      review.reviewDate.toString().split(' ')[0],
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _showDeleteDialog(review),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
   }
 
-  // Helper to get book title from ebookId (for display purposes)
-  String _getBookTitle(String ebookId) {
-    final book = globalEbooks.firstWhere(
-      (b) => b.ebookId == ebookId,
-      orElse: () =>
-          Book(ebookId: '', title: 'Unknown Book', author: ''), // Fallback
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _searchQuery.isEmpty ? Icons.reviews : Icons.search_off,
+            size: 64,
+            color: Colors.grey,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _searchQuery.isEmpty
+                ? 'No reviews available'
+                : 'No matching reviews found',
+            style: const TextStyle(fontSize: 18),
+          ),
+        ],
+      ),
     );
-    return book.title;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Search bar
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search reviews by reviewer or content...',
-              prefixIcon: Icon(Icons.search, color: primaryGreen),
-              filled: true,
-              fillColor: const Color.fromARGB(255, 234, 232, 232),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(color: primaryGreen, width: 2.0),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 12.0,
-                horizontal: 16.0,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Review Management'),
+        backgroundColor: primaryGreen,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadReviews,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search reviews...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
-        ),
-        Expanded(
-          child: _currentReviews.isEmpty && _searchQuery.isEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.rate_review, color: Colors.grey, size: 50),
-                      SizedBox(height: 10),
-                      Text('No reviews found.'),
-                    ],
-                  ),
-                )
-              : _currentReviews.isEmpty && _searchQuery.isNotEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search_off, color: Colors.grey, size: 50),
-                      SizedBox(height: 10),
-                      Text('No matching reviews found for your search.'),
-                    ],
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: _currentReviews.length,
-                  itemBuilder: (context, index) {
-                    final review = _currentReviews[index];
-                    final bookTitle = _getBookTitle(review.ebookId);
-
-                    return Card(
-                      elevation: 4.0,
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Review for: $bookTitle',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: loginPrimaryGreen,
-                              ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'By: ${review.reviewerName}',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.star,
-                                      color: Colors.amber,
-                                      size: 18,
-                                    ),
-                                    Text(
-                                      '${review.rating.toStringAsFixed(1)}/5.0',
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8.0),
-                            Text(
-                              review.reviewText,
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 8.0),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Text(
-                                '${review.reviewDate.toLocal().toString().split(' ')[0]}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.delete,
-                                  color: Colors.redAccent,
-                                ),
-                                tooltip: 'Delete Review',
-                                onPressed: () {
-                                  _showDeleteConfirmationDialog(
-                                    review.reviewId,
-                                    review.reviewerName,
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredReviews.isEmpty
+                    ? _buildEmptyState()
+                    : RefreshIndicator(
+                        onRefresh: _loadReviews,
+                        child: ListView.builder(
+                          itemCount: _filteredReviews.length,
+                          itemBuilder: (context, index) =>
+                              _buildReviewCard(_filteredReviews[index]),
                         ),
                       ),
-                    );
-                  },
-                ),
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }

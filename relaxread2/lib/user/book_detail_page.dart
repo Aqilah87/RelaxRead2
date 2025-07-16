@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:relaxread2/user/authorProfile.dart';
 import 'book.dart';
-import 'package:relaxread2/user/wishlist_page.dart'; // Uncomment if needed
+import 'package:relaxread2/user/wishlist_page.dart';
 
 class BookDetailPage extends StatefulWidget {
   final Book book;
-  final Function(Book) onAddToWishlist; // Callback to add to wishlist
-  final List<Book>
-  wishlist; // Pass the current wishlist to check if book is already added
+  final Function(Book) onAddToWishlist;
+  final List<Book> wishlist;
 
   const BookDetailPage({
     Key? key,
@@ -23,7 +22,7 @@ class BookDetailPage extends StatefulWidget {
 class _BookDetailPageState extends State<BookDetailPage> {
   int _userRating = 0;
   final TextEditingController _commentController = TextEditingController();
-  bool _isAddedToWishlist = false; // New state variable
+  bool _isAddedToWishlist = false;
 
   final List<Map<String, dynamic>> _comments = [
     {
@@ -79,13 +78,13 @@ class _BookDetailPageState extends State<BookDetailPage> {
         _userRating = 0;
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Comment added!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Comment added!')),
+      );
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Comment cannot be empty!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Comment cannot be empty!')),
+      );
     }
   }
 
@@ -173,7 +172,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
             // 🏢 Publisher info
             const SizedBox(height: 8.0),
             Text(
-              '${widget.book.publisher ?? 'Unknown Publisher'}, ${widget.book.month_publish ?? ''} ${widget.book.yearPublisher ?? ''}',
+              '${widget.book.publisher ?? 'Unknown Publisher'}, ${widget.book.monthPublish ?? ''} ${widget.book.yearPublisher ?? ''}',
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
 
@@ -264,12 +263,12 @@ class _BookDetailPageState extends State<BookDetailPage> {
                         setState(() {
                           _isAddedToWishlist = true;
                         });
-                        if (!globalWishlist.any(
+                        if (!widget.wishlist.any(
                           (b) =>
                               b.title == widget.book.title &&
                               b.author == widget.book.author,
                         )) {
-                          globalWishlist.add(widget.book);
+                          widget.onAddToWishlist(widget.book);
                         }
 
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -279,7 +278,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                             ),
                           ),
                         );
-                        // 👇 Navigate to the WishlistPage
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -287,7 +286,6 @@ class _BookDetailPageState extends State<BookDetailPage> {
                           ),
                         );
                       },
-
                 icon: _isAddedToWishlist
                     ? const Icon(Icons.favorite)
                     : const Icon(Icons.favorite_border),
@@ -297,7 +295,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isAddedToWishlist
                       ? Colors.grey
-                      : const Color(0xFF6B923C), // Change color when added
+                      : const Color(0xFF6B923C),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,

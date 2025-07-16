@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
       personalNote:
           'A heartfelt romance with emotional depth — where love, healing, and fatherhood intertwine unexpectedly.',
       publisher: 'Publisher A', // Added for completeness based on Book class
-      month_publish: 'Jan',
+      monthPublish: 'Jan',
       yearPublisher: '2023',
     ),
     Book(
@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
       personalNote:
           'A messy marriage of fate and heartbreak — when drama, exes, and secrets collide with unexpected love.',
       publisher: 'Publisher B',
-      month_publish: 'Feb',
+      monthPublish: 'Feb',
       yearPublisher: '2022',
     ),
     Book(
@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage> {
       personalNote:
           'A bitter-sweet tale of betrayal and resilience — where love is tested, dignity is shattered, and healing becomes the hardest chapter.',
       publisher: 'Publisher C',
-      month_publish: 'Mar',
+      monthPublish: 'Mar',
       yearPublisher: '2021',
     ),
     Book(
@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
       personalNote:
           'A playful enemies-to-lovers romance packed with teasing, tension, and one dangerously charming boss.',
       publisher: 'Publisher D',
-      month_publish: 'Apr',
+      monthPublish: 'Apr',
       yearPublisher: '2024',
     ),
   ];
