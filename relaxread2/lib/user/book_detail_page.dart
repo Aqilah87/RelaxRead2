@@ -101,10 +101,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
         Row(
           children: List.generate(5, (index) {
             return Icon(
-              index < rating
-                  ? Icons.star
-                  : Icons
-                        .star_half_outlined, // Use half star for partials if desired
+              index < rating ? Icons.star : Icons.star_border,
               color: Colors.amber,
               size: 16,
             );
