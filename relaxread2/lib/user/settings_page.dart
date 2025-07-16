@@ -108,31 +108,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             Divider(height: 20, thickness: 1, color: dividerColor),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              elevation: 2.0,
-              color: cardColor,
-              child: ListTile(
-                leading: Icon(Icons.language, color: primaryGreen),
-                title: Text(
-                  'Language',
-                  style: TextStyle(fontSize: 17, color: textColor),
-                ),
-                trailing: Icon(
-                  Icons.arrow_forward_ios,
-                  size: 18,
-                  color: trailingIconColor,
-                ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Language settings!')),
-                  );
-                },
-              ),
-            ),
             // --- Dark Mode Feature ---
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -318,13 +293,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   size: 18,
                   color: trailingIconColor,
                 ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Send Feedback!')),
-                  );
-                },
+              onTap: () => showInfoDialog(
+                    context,
+                    'Send Feedback',
+                    'We’d love to hear from you!\n\nIf you have suggestions, bugs to report, or want to share your experience using RelaxRead, feel free to contact us at:\n\n📧 relaxread.support@gmail.com\n🕘 We usually reply within 1–2 working days.',
+                    Icons.feedback_outlined,
+                ),
               ),
-            ),
+              ),
             const SizedBox(height: 30),
 
             // App Version

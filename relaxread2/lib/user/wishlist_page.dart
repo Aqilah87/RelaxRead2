@@ -13,13 +13,13 @@ class _WishlistPageState extends State<WishlistPage> {
     Book(
       title: 'Calon Isteri Tuan Haider',
       author: 'Zati Mohd',
-      imageUrl: 'https://placehold.co/80x120.png?text=Book+Cover',
+      imageUrl: 'https://picsum.photos/150/220?random=1',
       personalNote: 'A heartfelt romance with emotional depth.',
     ),
     Book(
       title: 'Bos Paling Romantik',
       author: 'Crystal Anabella',
-      imageUrl: 'https://placehold.co/80x120.png?text=Bos+Romantik',
+      imageUrl: 'https://picsum.photos/150/220?random=2',
       personalNote: 'Enemies to lovers with teasing tension.',
     ),
   ];
@@ -71,6 +71,10 @@ class WishlistCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final validImage = book.imageUrl?.startsWith('http') == true
+        ? book.imageUrl!
+        : 'https://via.placeholder.com/150x220.png?text=No+Image';
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       elevation: 3,
@@ -85,15 +89,15 @@ class WishlistCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    book.imageUrl ?? '',
+                    validImage,
                     width: 80,
                     height: 120,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, __, ___) => Image.network(
+                      'https://via.placeholder.com/150x220.png?text=No+Image',
                       width: 80,
                       height: 120,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image),
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
