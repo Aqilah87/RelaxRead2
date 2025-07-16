@@ -1,10 +1,14 @@
+// home_page.dart
 import 'package:flutter/material.dart';
-import 'package:relaxread2/user/user_profile.dart'; // Import user profile page
-import 'package:relaxread2/user/settings_page.dart'; // Import settings page
-import 'package:relaxread2/user/wishlist_page.dart'; // Import wishlist page
-import 'package:relaxread2/user/book.dart'; // Import the Book class
-import 'book_search.dart'; // Import the BookSearchPage
-import 'book_detail_page.dart'; // Import the BookDetailPage
+import 'package:provider/provider.dart'; // Import provider
+import 'package:relaxread2/user/user_profile.dart';
+import 'package:relaxread2/user/settings_page.dart';
+import 'package:relaxread2/user/wishlist_page.dart';
+import 'package:relaxread2/user/book.dart';
+import 'book_search.dart';
+import 'book_detail_page.dart';
+import 'package:relaxread2/theme_provider.dart';
+import 'package:relaxread2/user/settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,35 +23,38 @@ class _HomePageState extends State<HomePage> {
 
   int _selectedIndex = 0;
 
-  // Dummy book list for Wishlist and Featured Books
   final List<Book> featuredBooks = [
     Book(
       ebookId: '1',
       title: 'Calon Ister Tuan Haider',
       author: 'Zati Mohd',
       imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+1',
-      personalNote: 'A heartfelt romance with emotional depth — where love, healing, and fatherhood intertwine unexpectedly.',
+      personalNote:
+          'A heartfelt romance with emotional depth — where love, healing, and fatherhood intertwine unexpectedly.',
     ),
     Book(
       ebookId: '2',
       title: 'My Bae.. Tengku Fahd',
       author: 'Zati Mohd',
       imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+2',
-      personalNote: 'A messy marriage of fate and heartbreak — when drama, exes, and secrets collide with unexpected love.',
+      personalNote:
+          'A messy marriage of fate and heartbreak — when drama, exes, and secrets collide with unexpected love.',
     ),
     Book(
       ebookId: '3',
       title: 'Sekecewa Apa Pun Kau',
       author: 'Alyn',
       imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+3',
-      personalNote: 'A bitter-sweet tale of betrayal and resilience — where love is tested, dignity is shattered, and healing becomes the hardest chapter.',
+      personalNote:
+          'A bitter-sweet tale of betrayal and resilience — where love is tested, dignity is shattered, and healing becomes the hardest chapter.',
     ),
     Book(
       ebookId: '4',
       title: 'Bos Paling Romantik',
       author: 'Crystal Anabella',
       imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+4',
-      personalNote: 'A playful enemies-to-lovers romance packed with teasing, tension, and one dangerously charming boss.',
+      personalNote:
+          'A playful enemies-to-lovers romance packed with teasing, tension, and one dangerously charming boss.',
     ),
   ];
 
@@ -63,34 +70,44 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[800],
+              color: Theme.of(
+                context,
+              ).textTheme.bodyMedium!.color, // Use theme text color
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'What would you like to read today?',
-            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 18,
+              color: Theme.of(
+                context,
+              ).textTheme.bodySmall!.color, // Use theme subtitle color
+            ),
           ),
           const SizedBox(height: 30),
           TextField(
             decoration: InputDecoration(
               hintText: 'Search for books, authors...',
-              prefixIcon: Icon(Icons.search, color: primaryGreen),
+              hintStyle: Theme.of(
+                context,
+              ).inputDecorationTheme.hintStyle, // Use theme hint style
+              prefixIcon: const Icon(Icons.search, color: primaryGreen),
               filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(color: primaryGreen, width: 2.0),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 16.0,
-                horizontal: 20.0,
-              ),
+              fillColor: Theme.of(
+                context,
+              ).cardColor, // Use theme card color for fill
+              border: Theme.of(context).inputDecorationTheme.border,
+              focusedBorder: Theme.of(
+                context,
+              ).inputDecorationTheme.focusedBorder,
+              contentPadding: Theme.of(
+                context,
+              ).inputDecorationTheme.contentPadding,
             ),
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium!.color,
+            ), // Input text color
           ),
           const SizedBox(height: 30),
           Text(
@@ -98,7 +115,7 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: loginPrimaryGreen,
+              color: loginPrimaryGreen, // This color might remain constant
             ),
           ),
           const SizedBox(height: 15),
@@ -116,7 +133,6 @@ class _HomePageState extends State<HomePage> {
               final book = featuredBooks[index];
               return GestureDetector(
                 onTap: () {
-                  // Navigate to the BookDetailPage
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -125,6 +141,7 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
                 child: Card(
+                  color: Theme.of(context).cardColor, // Use theme card color
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),
@@ -142,7 +159,11 @@ class _HomePageState extends State<HomePage> {
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             height: 150,
-                            color: Colors.grey[300],
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey[800]
+                                : Colors
+                                      .grey[300], // Adjust placeholder based on theme
                             child: const Icon(
                               Icons.image_not_supported,
                               color: Colors.grey,
@@ -157,9 +178,13 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Text(
                               book.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .color, // Use theme text color
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -169,7 +194,10 @@ class _HomePageState extends State<HomePage> {
                               book.author,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey[600],
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall!
+                                    .color, // Use theme subtitle color
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -188,27 +216,56 @@ class _HomePageState extends State<HomePage> {
     ),
 
     // 📚 Tab 1 – Book Search
-    const BookSearchPage(), // Add the BookSearchPage here
-
+    const BookSearchPage(),
     // ❤️ Tab 2 – Wishlist
     SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
       child: Column(
         children: featuredBooks.isEmpty
-            ? [const Center(child: Text('Wishlist is empty at the moment 👀'))]
+            ? [
+                Center(
+                  child: Text(
+                    'Wishlist is empty at the moment 👀',
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium!.color,
+                    ), // Use theme text color
+                  ),
+                ),
+              ]
             : featuredBooks.map((book) {
                 return Card(
+                  color: Theme.of(context).cardColor, // Use theme card color
                   child: ListTile(
-                    title: Text(book.title),
-                    subtitle: Text(book.author),
+                    title: Text(
+                      book.title,
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium!.color,
+                      ), // Use theme text color
+                    ),
+                    subtitle: Text(
+                      book.author,
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodySmall!.color,
+                      ), // Use theme subtitle color
+                    ),
                     leading: Image.network(
                       book.imageUrl ?? '',
                       width: 50,
                       height: 75,
                       fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 75,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[800]
+                            : Colors
+                                  .grey[300], // Adjust placeholder based on theme
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
+                        ),
+                      ),
                     ),
                     onTap: () {
-                      // Navigate to the BookDetailPage
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -222,8 +279,7 @@ class _HomePageState extends State<HomePage> {
       ),
     ),
 
-    // ⚙️ Tab 3 – Settings
-    const SettingsPage(),
+    const SettingsPage(), // Simply create an instance of SettingsPage
   ];
 
   void _onItemTapped(int index) {
@@ -235,13 +291,18 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2EB),
+      backgroundColor: Theme.of(
+        context,
+      ).scaffoldBackgroundColor, // Use theme background color
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        backgroundColor: Theme.of(
+          context,
+        ).appBarTheme.backgroundColor, // Use theme app bar color
         elevation: 1.0,
         title: Row(
           children: [
-            Icon(Icons.menu_book, color: primaryGreen, size: 28),
+            const Icon(Icons.menu_book, color: primaryGreen, size: 28),
             const SizedBox(width: 8),
             Text(
               'RelaxRead',
@@ -255,21 +316,11 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: loginPrimaryGreen),
+            icon: Icon(
+              Icons.person_outline,
+              color: Theme.of(context).appBarTheme.foregroundColor,
+            ), // Use app bar foreground color for icon
             onPressed: () {
-              // Navigate to the BookSearchPage
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const BookSearchPage(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.person_outline, color: loginPrimaryGreen),
-            onPressed: () {
-              // Navigate to the UserProfilePage
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -285,15 +336,27 @@ class _HomePageState extends State<HomePage> {
       ),
       body: _widgetOptions(context).elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        selectedItemColor: loginPrimaryGreen,
-        unselectedItemColor: Colors.grey[600],
+        backgroundColor: Theme.of(context)
+            .bottomNavigationBarTheme
+            .backgroundColor, // Use theme background color
+        selectedItemColor: Theme.of(
+          context,
+        ).bottomNavigationBarTheme.selectedItemColor,
+        unselectedItemColor: Theme.of(
+          context,
+        ).bottomNavigationBarTheme.unselectedItemColor,
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline), label: 'Wishlist'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark_outline),
+            label: 'Wishlist',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,

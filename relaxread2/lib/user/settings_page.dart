@@ -3,13 +3,20 @@ import 'package:provider/provider.dart';
 import '../theme_provider.dart'; // Adjust path as needed
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  // It's good practice to make the onThemeToggle callback explicit
+  // for better readability and dependency management.
+  // Although in the previous example, the SettingsPage was instantiated
+  // within _HomePageState with a direct call to Provider.of.
+  // For consistency with that, we'll keep it as a StatefulWidget without a direct callback prop
+  // and access the ThemeProvider directly within its build method.
+  const SettingsPage({Key? key}) : super(key: key);
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  // These are your primary branding colors, which might not change with the theme mode.
   static const Color primaryGreen = Color(0xFF6B923C);
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
@@ -19,27 +26,13 @@ class _SettingsPageState extends State<SettingsPage> {
     String content,
     IconData icon,
   ) {
-    // You might want to make the AlertDialog's colors dynamic as well
-    final themeProvider = Provider.of<ThemeProvider>(
-      context,
-      listen: false,
-    ); // listen: false if you don't need to rebuild the dialog on theme change
-    final bool isDarkMode = themeProvider.isDarkMode;
-
-    final Color dialogBackgroundColor = isDarkMode
-        ? const Color(0xFF3A3A3A)
-        : Colors.white;
-    final Color dialogTextColor = isDarkMode ? Colors.white70 : Colors.black87;
-    final Color dialogTitleColor = isDarkMode
-        ? primaryGreen
-        : loginPrimaryGreen;
-    final Color buttonColor =
-        primaryGreen; // Still using primaryGreen for consistency
-
+    // Rely on Theme.of(context) for dialog colors as well
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: dialogBackgroundColor, // Dynamic dialog background
+        backgroundColor: Theme.of(
+          context,
+        ).cardColor, // Use theme's card color for dialog background
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
@@ -50,23 +43,31 @@ class _SettingsPageState extends State<SettingsPage> {
                 title,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: dialogTitleColor,
-                ), // Dynamic title color
+                  color: Theme.of(context)
+                      .textTheme
+                      .titleMedium!
+                      .color, // Use theme's title text color
+                ),
               ),
             ),
           ],
         ),
         content: Text(
           content,
-          style: TextStyle(fontSize: 16, color: dialogTextColor),
-        ), // Dynamic content text color
+          style: TextStyle(
+            fontSize: 16,
+            color: Theme.of(context).textTheme.bodyMedium!.color,
+          ), // Use theme's body text color
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'Close',
-              style: TextStyle(color: buttonColor),
-            ), // Button text color
+              style: TextStyle(
+                color: primaryGreen,
+              ), // Button text color (can be primaryGreen or Theme.of(context).buttonTheme.color)
+            ),
           ),
         ],
       ),
@@ -75,25 +76,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Access the ThemeProvider
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final bool isDarkMode = themeProvider.isDarkMode;
-
-    // Define colors based on current theme mode
-    final Color backgroundColor = isDarkMode
-        ? const Color(0xFF2C2C2C)
-        : const Color(0xFFF0F2EB);
-    // appBarColor is typically handled by MaterialApp's theme, but if you have a custom AppBar here, use it.
-    // final Color appBarColor = isDarkMode ? const Color(0xFF3A3A3A) : Colors.white;
-    final Color textColor = isDarkMode ? Colors.white70 : Colors.black87;
-    final Color headingColor = isDarkMode ? primaryGreen : loginPrimaryGreen;
-    final Color cardColor = isDarkMode ? const Color(0xFF3A3A3A) : Colors.white;
-    final Color dividerColor = isDarkMode ? Colors.grey[700]! : Colors.grey;
-    final Color trailingIconColor = isDarkMode
-        ? Colors.grey[400]!
-        : Colors.grey;
+    // Assuming ThemeProvider has an `isDarkMode` getter or you use `themeProvider.themeMode == ThemeMode.dark`
+    final bool isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 
     return Scaffold(
-      backgroundColor: backgroundColor, // Dynamic background color
+      backgroundColor: Theme.of(
+        context,
+      ).scaffoldBackgroundColor, // Use theme's scaffold background color
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -104,10 +95,16 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: headingColor,
+                color: Theme.of(
+                  context,
+                ).textTheme.titleMedium!.color, // Use theme's title text color
               ),
             ),
-            Divider(height: 20, thickness: 1, color: dividerColor),
+            Divider(
+              height: 20,
+              thickness: 1,
+              color: Theme.of(context).dividerColor,
+            ), // Use theme's divider color
             // --- Dark Mode Feature ---
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -115,7 +112,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               elevation: 2.0,
-              color: cardColor,
+              color: Theme.of(context).cardColor, // Use theme's card color
               child: ListTile(
                 leading: Icon(
                   isDarkMode
@@ -125,23 +122,33 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 title: Text(
                   'Dark Mode',
-                  style: TextStyle(fontSize: 17, color: textColor),
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
+                  ), // Use theme's body text color
                 ),
                 trailing: Switch(
                   value: isDarkMode,
                   onChanged: (bool value) {
-                    themeProvider.toggleTheme();
+                    themeProvider.toggleTheme(); // Toggle the theme
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Dark Mode toggled: $value')),
+                      SnackBar(
+                        content: Text(
+                          'Theme changed to ${value ? 'Dark' : 'Light'} Mode',
+                        ),
+                      ),
                     );
                   },
                   activeColor: primaryGreen,
                 ),
                 onTap: () {
+                  // Tapping the ListTile also toggles the theme
                   themeProvider.toggleTheme();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Dark Mode toggled: ${!isDarkMode}'),
+                      content: Text(
+                        'Theme changed to ${!isDarkMode ? 'Dark' : 'Light'} Mode',
+                      ),
                     ),
                   );
                 },
@@ -155,27 +162,38 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: headingColor,
+                color: Theme.of(
+                  context,
+                ).textTheme.titleMedium!.color, // Use theme's title text color
               ),
             ),
-            Divider(height: 20, thickness: 1, color: dividerColor),
+            Divider(
+              height: 20,
+              thickness: 1,
+              color: Theme.of(context).dividerColor,
+            ), // Use theme's divider color
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
               elevation: 2.0,
-              color: cardColor,
+              color: Theme.of(context).cardColor, // Use theme's card color
               child: ListTile(
                 leading: Icon(Icons.privacy_tip_outlined, color: primaryGreen),
                 title: Text(
                   'Privacy Policy',
-                  style: TextStyle(fontSize: 17, color: textColor),
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
+                  ), // Use theme's body text color
                 ),
                 trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 18,
-                  color: trailingIconColor,
+                  color: Theme.of(
+                    context,
+                  ).iconTheme.color, // Use theme's icon color
                 ),
                 onTap: () => showInfoDialog(
                   context,
@@ -191,17 +209,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               elevation: 2.0,
-              color: cardColor,
+              color: Theme.of(context).cardColor, // Use theme's card color
               child: ListTile(
                 leading: Icon(Icons.description_outlined, color: primaryGreen),
                 title: Text(
                   'Terms of Service',
-                  style: TextStyle(fontSize: 17, color: textColor),
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
+                  ), // Use theme's body text color
                 ),
                 trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 18,
-                  color: trailingIconColor,
+                  color: Theme.of(
+                    context,
+                  ).iconTheme.color, // Use theme's icon color
                 ),
                 onTap: () => showInfoDialog(
                   context,
@@ -217,17 +240,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               elevation: 2.0,
-              color: cardColor,
+              color: Theme.of(context).cardColor, // Use theme's card color
               child: ListTile(
                 leading: Icon(Icons.info_outline, color: primaryGreen),
                 title: Text(
                   'About RelaxRead',
-                  style: TextStyle(fontSize: 17, color: textColor),
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
+                  ), // Use theme's body text color
                 ),
                 trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 18,
-                  color: trailingIconColor,
+                  color: Theme.of(
+                    context,
+                  ).iconTheme.color, // Use theme's icon color
                 ),
                 onTap: () => showInfoDialog(
                   context,
@@ -245,27 +273,38 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: headingColor,
+                color: Theme.of(
+                  context,
+                ).textTheme.titleMedium!.color, // Use theme's title text color
               ),
             ),
-            Divider(height: 20, thickness: 1, color: dividerColor),
+            Divider(
+              height: 20,
+              thickness: 1,
+              color: Theme.of(context).dividerColor,
+            ), // Use theme's divider color
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
               elevation: 2.0,
-              color: cardColor,
+              color: Theme.of(context).cardColor, // Use theme's card color
               child: ListTile(
                 leading: Icon(Icons.help_outline, color: primaryGreen),
                 title: Text(
                   'Help & FAQs',
-                  style: TextStyle(fontSize: 17, color: textColor),
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
+                  ), // Use theme's body text color
                 ),
                 trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 18,
-                  color: trailingIconColor,
+                  color: Theme.of(
+                    context,
+                  ).iconTheme.color, // Use theme's icon color
                 ),
                 onTap: () => showInfoDialog(
                   context,
@@ -281,26 +320,31 @@ class _SettingsPageState extends State<SettingsPage> {
                 borderRadius: BorderRadius.circular(10.0),
               ),
               elevation: 2.0,
-              color: cardColor,
+              color: Theme.of(context).cardColor, // Use theme's card color
               child: ListTile(
                 leading: Icon(Icons.feedback_outlined, color: primaryGreen),
                 title: Text(
                   'Send Feedback',
-                  style: TextStyle(fontSize: 17, color: textColor),
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
+                  ), // Use theme's body text color
                 ),
                 trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 18,
-                  color: trailingIconColor,
-                ),
-              onTap: () => showInfoDialog(
+                  color: Theme.of(
                     context,
-                    'Send Feedback',
-                    'We’d love to hear from you!\n\nIf you have suggestions, bugs to report, or want to share your experience using RelaxRead, feel free to contact us at:\n\n📧 relaxread.support@gmail.com\n🕘 We usually reply within 1–2 working days.',
-                    Icons.feedback_outlined,
+                  ).iconTheme.color, // Use theme's icon color
+                ),
+                onTap: () => showInfoDialog(
+                  context,
+                  'Send Feedback',
+                  'We’d love to hear from you!\n\nIf you have suggestions, bugs to report, or want to share your experience using RelaxRead, feel free to contact us at:\n\n📧 relaxread.support@gmail.com\n🕘 We usually reply within 1–2 working days.',
+                  Icons.feedback_outlined,
                 ),
               ),
-              ),
+            ),
             const SizedBox(height: 30),
 
             // App Version
@@ -309,7 +353,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 'RelaxRead v1.0.0',
                 style: TextStyle(
                   fontSize: 14,
-                  color: textColor.withOpacity(0.7),
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodySmall!
+                      .color, // Use theme's subtitle/secondary text color
                 ),
               ),
             ),
