@@ -7,6 +7,7 @@ import 'package:relaxread2/user/book.dart';
 import 'manage_books_page.dart'; // Import the ManageBooksPage
 import 'package:provider/provider.dart'; // Import Provider
 import '../theme_provider.dart'; // Import your custom ThemeProvider
+import 'manage_users_page.dart'; // Import the new ManageUsersPage
 
 // Placeholder for globalReviews, similar to globalEbooks
 // In a real application, you would fetch these from a database or API.
@@ -52,6 +53,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     {'label': 'Dashboard', 'icon': Icons.dashboard},
     {'label': 'Manage Books', 'icon': Icons.menu_book},
     {'label': 'Manage Reviews', 'icon': Icons.reviews},
+    {
+      'label': 'Manage User Account',
+      'icon': Icons.people,
+    }, // Added Manage User Account
     {'label': 'Settings', 'icon': Icons.settings},
   ];
 
@@ -162,6 +167,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         onBookDeleted: _deleteBook,
       ),
       const ReviewManagementPage(),
+      const ManageUsersPage(), // Added ManageUsersPage
       const AdminSettingsPage(),
     ];
 
