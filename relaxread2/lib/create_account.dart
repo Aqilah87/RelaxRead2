@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
-import 'package:relaxread2/login_page.dart'; // Import the login page for navigation
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'login_page.dart';
 
 class CreateAccountScreen extends StatefulWidget {
-  final String
-  userType; // To know what kind of account to create (User or Admin)
+  final String userType; // User or Admin
 
   const CreateAccountScreen({super.key, required this.userType});
 
@@ -14,21 +13,18 @@ class CreateAccountScreen extends StatefulWidget {
 
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
   static const Color primaryGreen = Color(0xFF6B923C);
-  static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController =
-      TextEditingController(); // New: Username controller
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _usernameController.dispose(); // Dispose username controller
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -41,9 +37,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Passwords do not match!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match!')),
+      );
       return;
     }
 
@@ -52,49 +48,42 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     });
 
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String username = _usernameController.text.trim(); // Get username
-      final String email = _emailController.text
-          .trim()
-          .toLowerCase(); // Store email in lowercase
-      final String password = _passwordController.text.trim();
+      final response = await Supabase.instance.client.auth.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        data: {
+          'username': _usernameController.text.trim(),
+          'user_type': widget.userType,
+        },
+      );
 
-      // Check if an account with this email already exists
-      if (prefs.containsKey('user_email_$email')) {
+      final user = response.user;
+      if (user != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Account with this email already exists!'),
+            content: Text('Account created! Check your email to confirm.'),
           ),
         );
-        return;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginPage(userType: widget.userType),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sign-up failed. Please try again.')),
+        );
       }
-
-      // Save the new account details locally, including username
-      await prefs.setString('user_username_$email', username); // Save username
-      await prefs.setString('user_email_$email', email);
-      await prefs.setString('user_password_$email', password);
-      await prefs.setString(
-        'user_type_$email',
-        widget.userType,
-      ); // Save userType
-
+    } on AuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${widget.userType} Account created successfully!'),
-        ),
-      );
-
-      // Navigate back to the LoginPage, passing the userType that was just created
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LoginPage(userType: widget.userType),
-        ),
+        SnackBar(content: Text('Auth error: ${e.message}')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error creating account: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -127,8 +116,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: Text(
-                      'Create ${widget.userType} Account', // Dynamic title
-                      style: TextStyle(
+                      'Create ${widget.userType} Account',
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: primaryGreen,
@@ -136,75 +125,16 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     ),
                   ),
                   const SizedBox(height: 40),
-                  // New: Username field
-                  const Text(
-                    'Username',
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
+                  _buildTextField(
+                    label: 'Username',
                     controller: _usernameController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter your username',
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12.0,
-                        horizontal: 12.0,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: primaryGreen,
-                          width: 2.0,
-                        ),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a username';
-                      }
-                      return null;
-                    },
+                    validator: (value) =>
+                        (value == null || value.isEmpty) ? 'Please enter a username' : null,
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Email address',
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
+                  _buildTextField(
+                    label: 'Email address',
                     controller: _emailController,
-                    decoration: InputDecoration(
-                      hintText: 'you@example.com',
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12.0,
-                        horizontal: 12.0,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: primaryGreen,
-                          width: 2.0,
-                        ),
-                      ),
-                    ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -217,37 +147,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Password',
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
+                  _buildPasswordField(
+                    label: 'Password',
                     controller: _passwordController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter password',
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12.0,
-                        horizontal: 12.0,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: primaryGreen,
-                          width: 2.0,
-                        ),
-                      ),
-                    ),
-                    obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter a password';
@@ -259,41 +161,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Confirm Password',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
+                  _buildPasswordField(
+                    label: 'Confirm Password',
                     controller: _confirmPasswordController,
-                    decoration: InputDecoration(
-                      hintText: 'Confirm password',
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12.0,
-                        horizontal: 12.0,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: primaryGreen,
-                          width: 2.0,
-                        ),
-                      ),
-                    ),
-                    obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please confirm your password';
@@ -306,9 +176,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                   const SizedBox(height: 40),
                   _isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(color: primaryGreen),
-                        )
+                      ? const Center(child: CircularProgressIndicator(color: primaryGreen))
                       : ElevatedButton(
                           onPressed: _handleCreateAccount,
                           style: ElevatedButton.styleFrom(
@@ -326,50 +194,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           ),
                           child: const Text('Sign Up'),
                         ),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.center,
-                    child: Text(
-                      'or',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Sign up with Google pressed! (Not implemented)',
-                          ),
-                        ),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: primaryGreen,
-                      side: BorderSide(color: Colors.grey.shade400, width: 1.0),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16.0,
-                        horizontal: 20.0,
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.g_mobiledata, color: primaryGreen, size: 28),
-                        const SizedBox(width: 8),
-                        const Text('Sign up with Google'),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -383,8 +207,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  LoginPage(userType: widget.userType),
+                              builder: (context) => LoginPage(userType: widget.userType),
                             ),
                           );
                         },
@@ -406,6 +229,66 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    TextInputType keyboardType = TextInputType.text,
+    required String? Function(String?) validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          decoration: _inputDecoration(),
+          validator: validator,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField({
+    required String label,
+    required TextEditingController controller,
+    required String? Function(String?) validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: true,
+          decoration: _inputDecoration(),
+          validator: validator,
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _inputDecoration() {
+    return InputDecoration(
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: const BorderSide(color: primaryGreen, width: 2.0),
       ),
     );
   }

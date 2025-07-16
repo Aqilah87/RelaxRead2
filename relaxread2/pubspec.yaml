@@ -12,6 +12,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  supabase_flutter: ^2.0.0
+  flutter_dotenv: ^5.1.0
 
   cupertino_icons: ^1.0.8
   uuid: ^4.5.1
@@ -29,6 +31,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     # Add your image assets here, for example:
     # - images/a_dot_ham.jpeg
-     - assets/RR12.png
+    - assets/RR12.png

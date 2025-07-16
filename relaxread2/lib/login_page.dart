@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:relaxread2/user/user_profile.dart'; // Still imported if UserProfilePage is used elsewhere
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:relaxread2/create_account.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:relaxread2/admin/dashboard_page.dart';
-import 'package:relaxread2/user/homepage.dart'; // Import user homepage
+import 'package:relaxread2/user/homepage.dart';
+import 'package:relaxread2/create_account.dart';
 
 class LoginPage extends StatefulWidget {
   final String userType;
@@ -15,7 +14,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  static const Color primaryGreen = Color(0xFF6B923C);
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
   final TextEditingController _emailController = TextEditingController();
@@ -31,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() async {
+  Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -41,82 +39,77 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String enteredEmail = _emailController.text.trim().toLowerCase();
-      final String enteredPassword = _passwordController.text.trim();
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
 
-      final String? storedEmail = prefs.getString('user_email_$enteredEmail');
-      final String? storedPassword = prefs.getString(
-        'user_password_$enteredEmail',
-      );
-      final String? storedUserType = prefs.getString('user_type_$enteredEmail');
-      final String? storedUsername = prefs.getString(
-        'user_username_$enteredEmail',
-      ); // Retrieve username
+      final supabase = Supabase.instance.client;
 
-      // --- Debugging Prints ---
-      print('--- Login Attempt ---');
-      print('Entered Email: "$enteredEmail"');
-      print('Entered Password: "$enteredPassword"');
-      print('Stored Email (key: user_email_$enteredEmail): "$storedEmail"');
-      print(
-        'Stored Password (key: user_password_$enteredEmail): "$storedPassword"',
+      final response = await supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
       );
-      print(
-        'Stored User Type (key: user_type_$enteredEmail): "$storedUserType"',
-      );
-      print(
-        'Stored Username (key: user_username_$enteredEmail): "$storedUsername"',
-      );
-      print('Expected User Type for this page: "${widget.userType}"');
-      print('---------------------');
-      // --- End Debugging Prints ---
 
-      if (storedEmail == enteredEmail && storedPassword == enteredPassword) {
-        if (storedUserType == widget.userType) {
-          if (storedUserType == 'Admin') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Admin Login Successful!')),
-            );
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AdminDashboardPage(),
-              ),
-            );
-          } else if (storedUserType == 'User') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('User Login Successful!')),
-            );
-            // Navigate to UserHomepage, passing retrieved name and email
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(
-                  // Now passing arguments
-                  userName: storedUsername ?? 'User',
-                  userEmail: enteredEmail,
-                ),
-              ),
-            );
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Account type mismatch. Please use the correct login page for ${storedUserType ?? 'an unknown'} account.',
-              ),
-            ),
-          );
-        }
-      } else {
+      final user = response.user;
+
+      if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid email or password.')),
         );
+        return;
       }
+
+      // Get user_type from user_metadata
+      final metadata = user.userMetadata;
+      final userTypeFromMetadata = metadata?['user_type'];
+
+      print('User metadata: $metadata');
+
+      if (userTypeFromMetadata == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No user type found in user metadata.')),
+        );
+        return;
+      }
+
+      if (userTypeFromMetadata != widget.userType) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Account type mismatch. Expected ${widget.userType}, but account is $userTypeFromMetadata.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Login success
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login Successful!')),
+      );
+
+      if (userTypeFromMetadata == 'Admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
+        );
+      } else if (userTypeFromMetadata == 'User') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(
+              userName: user.email ?? 'User',
+              userEmail: user.email ?? '',
+            ),
+          ),
+        );
+      }
+    } on AuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: ${e.message}')),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during login: $e')),
+        SnackBar(content: Text('Unexpected error: $e')),
       );
     } finally {
       setState(() {
@@ -142,10 +135,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           elevation: 4.0,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32.0,
-              vertical: 40.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
             child: Form(
               key: _formKey,
               child: Column(
@@ -174,24 +164,14 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: InputDecoration(
                       hintText: 'you@example.com',
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12.0,
-                        horizontal: 12.0,
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                         borderSide: const BorderSide(color: Colors.grey),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: loginPrimaryGreen,
-                          width: 2.0,
-                        ),
+                        borderSide: const BorderSide(color: loginPrimaryGreen, width: 2.0),
                       ),
                     ),
                     keyboardType: TextInputType.emailAddress,
@@ -216,24 +196,14 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: InputDecoration(
                       hintText: 'Enter password',
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12.0,
-                        horizontal: 12.0,
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                         borderSide: const BorderSide(color: Colors.grey),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
-                        borderSide: const BorderSide(
-                          color: loginPrimaryGreen,
-                          width: 2.0,
-                        ),
+                        borderSide: const BorderSide(color: loginPrimaryGreen, width: 2.0),
                       ),
                     ),
                     obscureText: true,
@@ -247,32 +217,10 @@ class _LoginPageState extends State<LoginPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Forgot Password pressed!'),
-                          ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: loginPrimaryGreen,
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: const Text('Forgot Password?'),
-                    ),
-                  ),
                   const SizedBox(height: 24),
                   _isLoading
                       ? const Center(
-                          child: CircularProgressIndicator(
-                            color: loginPrimaryGreen,
-                          ),
+                          child: CircularProgressIndicator(color: loginPrimaryGreen),
                         )
                       : ElevatedButton(
                           onPressed: _handleLogin,
@@ -280,10 +228,7 @@ class _LoginPageState extends State<LoginPage> {
                             backgroundColor: loginPrimaryGreen,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16.0),
-                            textStyle: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8.0),
                             ),
@@ -291,9 +236,9 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           child: const Text('Login'),
                         ),
-                  const SizedBox(height: 12),
-                  const SizedBox(height: 16),
-                  Row(
+                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
+                        Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
