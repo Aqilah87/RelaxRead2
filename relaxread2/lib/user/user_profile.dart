@@ -38,6 +38,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
+  // Function to show the Change Password dialog
+  void _showChangePasswordDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ChangePasswordDialog();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Access ThemeProvider to get the current theme mode
@@ -194,10 +204,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   color: trailingIconColor, // Dynamic trailing icon color
                 ),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Change Password!')),
-                  );
-                  // Navigate to change password page
+                  _showChangePasswordDialog(context); // Call the dialog
                 },
               ),
             ),
@@ -292,6 +299,185 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// New Widget for Change Password Dialog
+class ChangePasswordDialog extends StatefulWidget {
+  const ChangePasswordDialog({super.key});
+
+  @override
+  State<ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmNewPasswordController =
+      TextEditingController();
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmNewPassword = true;
+
+  @override
+  void dispose() {
+    _newPasswordController.dispose();
+    _confirmNewPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _savePassword() {
+    if (_formKey.currentState!.validate()) {
+      // In a real application, you would send the new password to your backend
+      // or update it in a local storage solution (e.g., SharedPreferences).
+      // Since we are not using a database, we'll just show a success message.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password changed successfully!')),
+      );
+      Navigator.of(context).pop(); // Close the dialog
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Access ThemeProvider to get the current theme mode
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final bool isDarkMode = themeProvider.isDarkMode;
+
+    // Define colors based on the current theme mode for the dialog
+    final Color dialogBackgroundColor = isDarkMode
+        ? const Color(0xFF2C2C2C)
+        : Colors.white;
+    final Color dialogTitleColor = isDarkMode
+        ? const Color(0xFF6B923C)
+        : const Color(0xFF5A7F30);
+    final Color inputTextColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final Color inputLabelColor = isDarkMode
+        ? Colors.grey[400]!
+        : Colors.grey[600]!;
+    final Color inputBorderColor = isDarkMode
+        ? Colors.grey[600]!
+        : Colors.grey[400]!;
+    final Color buttonColor = const Color(
+      0xFF6B923C,
+    ); // Consistent green for buttons
+
+    return AlertDialog(
+      backgroundColor: dialogBackgroundColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      title: Text(
+        'Change Password',
+        style: TextStyle(color: dialogTitleColor, fontWeight: FontWeight.bold),
+      ),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _newPasswordController,
+                obscureText: _obscureNewPassword,
+                style: TextStyle(color: inputTextColor),
+                decoration: InputDecoration(
+                  labelText: 'New Password',
+                  labelStyle: TextStyle(color: inputLabelColor),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: inputBorderColor),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: dialogTitleColor, width: 2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureNewPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: inputLabelColor,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureNewPassword = !_obscureNewPassword;
+                      });
+                    },
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a new password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters long';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                controller: _confirmNewPasswordController,
+                obscureText: _obscureConfirmNewPassword,
+                style: TextStyle(color: inputTextColor),
+                decoration: InputDecoration(
+                  labelText: 'Confirm New Password',
+                  labelStyle: TextStyle(color: inputLabelColor),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: inputBorderColor),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: dialogTitleColor, width: 2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmNewPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: inputLabelColor,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmNewPassword =
+                            !_obscureConfirmNewPassword;
+                      });
+                    },
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please confirm your new password';
+                  }
+                  if (value != _newPasswordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // Close the dialog
+          },
+          child: Text('Cancel', style: TextStyle(color: buttonColor)),
+        ),
+        ElevatedButton(
+          onPressed: _savePassword,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: buttonColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+          ),
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 }

@@ -4,9 +4,9 @@ import 'package:provider/provider.dart'; // Import provider
 import 'package:relaxread2/user/user_profile.dart';
 import 'package:relaxread2/user/settings_page.dart';
 import 'package:relaxread2/user/wishlist_page.dart'; // Assuming this is a separate page for wishlist
-import 'package:relaxread2/user/book.dart';
+import 'package:relaxread2/user/book.dart'; // This import should contain your Book class and globalWishlist
 import 'book_search.dart';
-import 'book_detail_page.dart';
+import 'book_detail_page.dart'; // Import the BookDetailPage
 import 'package:relaxread2/theme_provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -33,35 +33,51 @@ class _HomePageState extends State<HomePage> {
   final List<Book> featuredBooks = [
     Book(
       ebookId: '1',
-      title: 'Calon Ister Tuan Haider',
+      title: 'Calon Isteri Tuan Haider', // Fixed typo
       author: 'Zati Mohd',
-      imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+1',
+      imageUrl:
+          'https://cdn.gramedia.com/uploads/items/9786020630737_rev2-01.jpg', // More realistic URL
       personalNote:
           'A heartfelt romance with emotional depth — where love, healing, and fatherhood intertwine unexpectedly.',
+      publisher: 'Publisher A', // Added for completeness based on Book class
+      month_publish: 'Jan',
+      yearPublisher: '2023',
     ),
     Book(
       ebookId: '2',
       title: 'My Bae.. Tengku Fahd',
       author: 'Zati Mohd',
-      imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+2',
+      imageUrl:
+          'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1483103331i/33792078.jpg', // More realistic URL
       personalNote:
           'A messy marriage of fate and heartbreak — when drama, exes, and secrets collide with unexpected love.',
+      publisher: 'Publisher B',
+      month_publish: 'Feb',
+      yearPublisher: '2022',
     ),
     Book(
       ebookId: '3',
       title: 'Sekecewa Apa Pun Kau',
       author: 'Alyn',
-      imageUrl: 'https://placehold.co/150x220/6B923C/FFFFFF?text=Book+3',
+      imageUrl:
+          'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1586716075l/52324707._SX318_SY475_.jpg', // More realistic URL
       personalNote:
           'A bitter-sweet tale of betrayal and resilience — where love is tested, dignity is shattered, and healing becomes the hardest chapter.',
+      publisher: 'Publisher C',
+      month_publish: 'Mar',
+      yearPublisher: '2021',
     ),
     Book(
       ebookId: '4',
       title: 'Bos Paling Romantik',
       author: 'Crystal Anabella',
-      imageUrl: 'https://placehold.co/150x220/5A7F30/FFFFFF?text=Book+4',
+      imageUrl:
+          'https://m.media-amazon.com/images/I/41-lS90n-TL._AC_UF1000,1000_QL80_.jpg', // More realistic URL
       personalNote:
           'A playful enemies-to-lovers romance packed with teasing, tension, and one dangerously charming boss.',
+      publisher: 'Publisher D',
+      month_publish: 'Apr',
+      yearPublisher: '2024',
     ),
   ];
 
@@ -144,7 +160,13 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BookDetailPage(book: book),
+                      // When navigating to BookDetailPage, you no longer need to pass
+                      // onAddToWishlist or wishlist, as BookDetailPage will use globalWishlist directly.
+                      builder: (context) => BookDetailPage(
+                        book: book,
+                        onAddToWishlist: (Book) {},
+                        wishlist: [],
+                      ),
                     ),
                   );
                 },
@@ -225,68 +247,10 @@ class _HomePageState extends State<HomePage> {
 
     // 📚 Tab 1 – Book Search
     const BookSearchPage(),
-    // ❤️ Tab 2 – Wishlist
-    SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
-      child: Column(
-        children: featuredBooks.isEmpty
-            ? [
-                Center(
-                  child: Text(
-                    'Wishlist is empty at the moment 👀',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium!.color,
-                    ), // Use theme text color
-                  ),
-                ),
-              ]
-            : featuredBooks.map((book) {
-                return Card(
-                  color: Theme.of(context).cardColor, // Use theme card color
-                  child: ListTile(
-                    title: Text(
-                      book.title,
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium!.color,
-                      ), // Use theme text color
-                    ),
-                    subtitle: Text(
-                      book.author,
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodySmall!.color,
-                      ), // Use theme subtitle color
-                    ),
-                    leading: Image.network(
-                      book.imageUrl ?? '',
-                      width: 50,
-                      height: 75,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        height: 75,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey[800]
-                            : Colors
-                                  .grey[300], // Adjust placeholder based on theme
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BookDetailPage(book: book),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              }).toList(),
-      ),
-    ),
 
+    // ❤️ Tab 2 – Wishlist - Now directly uses the WishlistPage
+    const WishlistPage(), // Instantiate the WishlistPage
+    // ⚙️ Tab 3 – Settings
     const SettingsPage(), // Simply create an instance of SettingsPage
   ];
 

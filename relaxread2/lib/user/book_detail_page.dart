@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:relaxread2/user/authorProfile.dart';
-import 'book.dart';
+import 'book.dart'; // Assuming book.dart is in the same directory or adjust path
+
+// Add this line to import the wishlist_page if you want to navigate directly there
+// import 'package:relaxread2/user/wishlist_page.dart'; // Uncomment if needed
 
 class BookDetailPage extends StatefulWidget {
   final Book book;
+  final Function(Book) onAddToWishlist; // Callback to add to wishlist
+  final List<Book>
+  wishlist; // Pass the current wishlist to check if book is already added
 
-  const BookDetailPage({Key? key, required this.book}) : super(key: key);
+  const BookDetailPage({
+    Key? key,
+    required this.book,
+    required this.onAddToWishlist,
+    required this.wishlist,
+  }) : super(key: key);
 
   @override
   State<BookDetailPage> createState() => _BookDetailPageState();
@@ -14,6 +25,7 @@ class BookDetailPage extends StatefulWidget {
 class _BookDetailPageState extends State<BookDetailPage> {
   int _userRating = 0;
   final TextEditingController _commentController = TextEditingController();
+  bool _isAddedToWishlist = false; // New state variable
 
   final List<Map<String, dynamic>> _comments = [
     {
@@ -27,6 +39,18 @@ class _BookDetailPageState extends State<BookDetailPage> {
       'rating': 3,
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfAlreadyInWishlist();
+  }
+
+  void _checkIfAlreadyInWishlist() {
+    _isAddedToWishlist = widget.wishlist.any(
+      (b) => b.title == widget.book.title && b.author == widget.book.author,
+    );
+  }
 
   @override
   void dispose() {
@@ -79,7 +103,10 @@ class _BookDetailPageState extends State<BookDetailPage> {
         Row(
           children: List.generate(5, (index) {
             return Icon(
-              index < rating ? Icons.star : Icons.star_border,
+              index < rating
+                  ? Icons.star
+                  : Icons
+                        .star_half_outlined, // Use half star for partials if desired
               color: Colors.amber,
               size: 16,
             );
@@ -236,15 +263,33 @@ class _BookDetailPageState extends State<BookDetailPage> {
             // ❤️ Wishlist button
             Center(
               child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Added to Wishlist!')),
-                  );
-                },
-                icon: const Icon(Icons.favorite_border),
-                label: const Text('Add to Wishlist'),
+                onPressed: _isAddedToWishlist
+                    ? null // Disable button if already added
+                    : () {
+                        setState(() {
+                          _isAddedToWishlist = true; // Update local state
+                        });
+                        widget.onAddToWishlist(
+                          widget.book,
+                        ); // Call the callback
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '${widget.book.title} added to Wishlist!',
+                            ),
+                          ),
+                        );
+                      },
+                icon: _isAddedToWishlist
+                    ? const Icon(Icons.favorite)
+                    : const Icon(Icons.favorite_border),
+                label: Text(
+                  _isAddedToWishlist ? 'Added to Wishlist' : 'Add to Wishlist',
+                ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6B923C),
+                  backgroundColor: _isAddedToWishlist
+                      ? Colors.grey
+                      : const Color(0xFF6B923C), // Change color when added
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
