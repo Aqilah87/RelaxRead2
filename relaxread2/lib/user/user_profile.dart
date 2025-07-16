@@ -209,7 +209,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               elevation: 2.0,
               color: cardBackgroundColor, // Dynamic card background
               child: ListTile(
-                leading: Icon(
+                leading: const Icon(
                   Icons.subscriptions_outlined,
                   color: primaryGreen,
                 ),

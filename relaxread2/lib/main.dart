@@ -184,7 +184,10 @@ class MyApp extends StatelessWidget {
           initialRoute: '/',
           routes: {
             '/': (context) => const WelcomePage(),
-            '/home': (context) => const HomePage(), // Add your HomePage route
+            '/home': (context) => const HomePage(
+              userName: '',
+              userEmail: '',
+            ), // Add your HomePage route
             '/admin_dashboard': (context) => const AdminDashboardPage(),
           },
         );

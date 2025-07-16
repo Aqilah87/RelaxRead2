@@ -3,15 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Import provider
 import 'package:relaxread2/user/user_profile.dart';
 import 'package:relaxread2/user/settings_page.dart';
-import 'package:relaxread2/user/wishlist_page.dart';
+import 'package:relaxread2/user/wishlist_page.dart'; // Assuming this is a separate page for wishlist
 import 'package:relaxread2/user/book.dart';
 import 'book_search.dart';
 import 'book_detail_page.dart';
 import 'package:relaxread2/theme_provider.dart';
-import 'package:relaxread2/user/settings_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  // Add final properties to store userName and userEmail
+  final String userName;
+  final String userEmail;
+
+  const HomePage({
+    Key? key,
+    required this.userName, // Now correctly required and stored
+    required this.userEmail, // Now correctly required and stored
+  }) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -66,7 +73,8 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Hello Reader,',
+            // Use widget.userName to display the passed user name
+            'Hello ${widget.userName},',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w600,
@@ -324,9 +332,10 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(
-                    userName: 'Current User',
-                    userEmail: 'current.user@example.com',
+                  builder: (context) => UserProfilePage(
+                    // Pass the actual userName and userEmail received by HomePage
+                    userName: widget.userName,
+                    userEmail: widget.userEmail,
                   ),
                 ),
               );

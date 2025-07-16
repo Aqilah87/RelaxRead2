@@ -17,6 +17,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _usernameController =
+      TextEditingController(); // New: Username controller
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -26,6 +28,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   @override
   void dispose() {
+    _usernameController.dispose(); // Dispose username controller
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -50,6 +53,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String username = _usernameController.text.trim(); // Get username
       final String email = _emailController.text
           .trim()
           .toLowerCase(); // Store email in lowercase
@@ -65,7 +69,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         return;
       }
 
-      // Save the new account details locally
+      // Save the new account details locally, including username
+      await prefs.setString('user_username_$email', username); // Save username
       await prefs.setString('user_email_$email', email);
       await prefs.setString('user_password_$email', password);
       await prefs.setString(
@@ -131,6 +136,45 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     ),
                   ),
                   const SizedBox(height: 40),
+                  // New: Username field
+                  const Text(
+                    'Username',
+                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter your username',
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12.0,
+                        horizontal: 12.0,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(
+                          color: primaryGreen,
+                          width: 2.0,
+                        ),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a username';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
                   const Text(
                     'Email address',
                     style: TextStyle(fontSize: 16, color: Colors.black87),

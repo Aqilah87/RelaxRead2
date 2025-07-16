@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
-import 'package:relaxread2/create_account.dart'; // Import create account screen
-import 'package:relaxread2/admin/dashboard_page.dart'; // Import admin dashboard
+import 'package:relaxread2/user/user_profile.dart'; // Still imported if UserProfilePage is used elsewhere
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:relaxread2/create_account.dart';
+import 'package:relaxread2/admin/dashboard_page.dart';
 import 'package:relaxread2/user/homepage.dart'; // Import user homepage
 
 class LoginPage extends StatefulWidget {
-  final String userType; // To differentiate between Admin and User login
+  final String userType;
 
   const LoginPage({super.key, required this.userType});
 
@@ -41,17 +42,17 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      // Trim and lowercase entered email for consistent key generation and lookup
       final String enteredEmail = _emailController.text.trim().toLowerCase();
-      final String enteredPassword = _passwordController.text
-          .trim(); // Password remains case-sensitive
+      final String enteredPassword = _passwordController.text.trim();
 
-      // Retrieve stored credentials for the entered email
       final String? storedEmail = prefs.getString('user_email_$enteredEmail');
       final String? storedPassword = prefs.getString(
         'user_password_$enteredEmail',
       );
       final String? storedUserType = prefs.getString('user_type_$enteredEmail');
+      final String? storedUsername = prefs.getString(
+        'user_username_$enteredEmail',
+      ); // Retrieve username
 
       // --- Debugging Prints ---
       print('--- Login Attempt ---');
@@ -64,13 +65,14 @@ class _LoginPageState extends State<LoginPage> {
       print(
         'Stored User Type (key: user_type_$enteredEmail): "$storedUserType"',
       );
+      print(
+        'Stored Username (key: user_username_$enteredEmail): "$storedUsername"',
+      );
       print('Expected User Type for this page: "${widget.userType}"');
       print('---------------------');
       // --- End Debugging Prints ---
 
-      // Check if the account exists and credentials match
       if (storedEmail == enteredEmail && storedPassword == enteredPassword) {
-        // Credentials match, now check if the stored user type matches the login page's userType
         if (storedUserType == widget.userType) {
           if (storedUserType == 'Admin') {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -86,13 +88,19 @@ class _LoginPageState extends State<LoginPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('User Login Successful!')),
             );
+            // Navigate to UserHomepage, passing retrieved name and email
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
+              MaterialPageRoute(
+                builder: (context) => HomePage(
+                  // Now passing arguments
+                  userName: storedUsername ?? 'User',
+                  userEmail: enteredEmail,
+                ),
+              ),
             );
           }
         } else {
-          // Stored user type does not match the current login page type
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -102,7 +110,6 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       } else {
-        // Invalid credentials
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid email or password.')),
         );
@@ -295,7 +302,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       TextButton(
                         onPressed: () {
-                          // Navigate to Create Account screen, passing the current userType
                           Navigator.push(
                             context,
                             MaterialPageRoute(
