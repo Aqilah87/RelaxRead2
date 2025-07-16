@@ -1,7 +1,6 @@
-// lib/user/wishlist_page.dart (or your actual path)
 import 'package:flutter/material.dart';
-import 'package:relaxread2/user/book.dart'; // Import the book.dart file with globalWishlist
-import 'package:relaxread2/user/book_detail_page.dart'; // Import the BookDetailPage
+import 'package:relaxread2/user/book.dart'; // Contains globalWishlist
+import 'package:relaxread2/user/book_detail_page.dart'; // For BookDetailPage
 
 class WishlistPage extends StatefulWidget {
   const WishlistPage({super.key});
@@ -12,38 +11,31 @@ class WishlistPage extends StatefulWidget {
 
 class _WishlistPageState extends State<WishlistPage> {
   void _deleteBook(String ebookId) {
-    // Find the index of the book to delete by its ebookId in the global list
     final index = globalWishlist.indexWhere((book) => book.ebookId == ebookId);
     if (index != -1) {
       setState(() {
-        globalWishlist.removeAt(index); // Remove from the global list
+        globalWishlist.removeAt(index);
       });
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Removed from wishlist')));
-      debugPrint(
-        'Book with ID $ebookId deleted. Current global wishlist length: ${globalWishlist.length}',
-      );
-    } else {
-      debugPrint('Attempted to delete book with non-existent ID: $ebookId');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-      'WishlistPage build: current global wishlist length = ${globalWishlist.length}',
-    );
-
-    final theme = Theme.of(context); // Get current theme
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme
-          .scaffoldBackgroundColor, // Ensure background color matches theme
-      // AppBar removed entirely
+      appBar: AppBar(
+        title: const Text('Relax Read - Wishlist'),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: theme.textTheme.titleLarge?.color,
+        elevation: 0.5,
+      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        // Use SafeArea to avoid content overlapping status bar
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
           child: globalWishlist.isEmpty
@@ -86,18 +78,16 @@ class WishlistCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Check if imageUrl is null or not a valid HTTP/HTTPS URL
     final validImage = book.imageUrl?.startsWith('http') == true
         ? book.imageUrl!
         : 'https://via.placeholder.com/150x220.png?text=No+Image';
 
     return Dismissible(
-      key: ValueKey(book.ebookId), // Using ebookId for a unique key
-      direction:
-          DismissDirection.endToStart, // Swipe from right to left to dismiss
+      key: ValueKey(book.ebookId),
+      direction: DismissDirection.endToStart,
       onDismissed: onDismissed,
       background: Container(
-        color: Colors.red.shade700, // Darker red for delete background
+        color: Colors.red.shade700,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(Icons.delete, color: Colors.white, size: 30),
@@ -117,16 +107,14 @@ class WishlistCard extends StatelessWidget {
             ),
             actions: [
               TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(false), // User cancels
+                onPressed: () => Navigator.of(context).pop(false),
                 child: Text(
                   'Cancel',
                   style: TextStyle(color: theme.primaryColor),
                 ),
               ),
               TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(true), // User confirms deletion
+                onPressed: () => Navigator.of(context).pop(true),
                 child: const Text(
                   'Remove',
                   style: TextStyle(color: Colors.redAccent),
@@ -137,15 +125,14 @@ class WishlistCard extends StatelessWidget {
         );
       },
       child: InkWell(
-        // Added InkWell for tap functionality and visual feedback
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => BookDetailPage(
                 book: book,
-                onAddToWishlist: (Book) {},
-                wishlist: [],
+                onAddToWishlist: (book) {}, // No need to add again
+                wishlist: globalWishlist,
               ),
             ),
           );
@@ -156,7 +143,7 @@ class WishlistCard extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          color: theme.cardColor, // Use theme's card color
+          color: theme.cardColor,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -166,9 +153,8 @@ class WishlistCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
                     validImage,
-                    width: 90, // Slightly increased width
-                    height:
-                        140, // Slightly increased height for better aspect ratio
+                    width: 90,
+                    height: 140,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       width: 90,
@@ -185,7 +171,7 @@ class WishlistCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16), // Increased spacing
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,14 +179,14 @@ class WishlistCard extends StatelessWidget {
                       Text(
                         book.title,
                         style: TextStyle(
-                          fontSize: 17, // Slightly larger font
+                          fontSize: 17,
                           fontWeight: FontWeight.bold,
                           color: theme.textTheme.titleMedium!.color,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6), // Increased spacing
+                      const SizedBox(height: 6),
                       Text(
                         book.author,
                         style: TextStyle(
@@ -211,8 +197,6 @@ class WishlistCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-
-                      // Genre and Rating Display
                       if (book.genre != null && book.genre!.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 4.0),
@@ -230,9 +214,6 @@ class WishlistCard extends StatelessWidget {
                         Row(
                           children: [
                             ...List.generate(5, (index) {
-                              // Full star if index < rating (integer part)
-                              // Half star if index is the integer part and rating has a decimal >= 0.5
-                              // Empty star otherwise
                               return Icon(
                                 index < book.rating!.floor()
                                     ? Icons.star

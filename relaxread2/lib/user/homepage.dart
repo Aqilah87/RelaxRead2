@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   static const Color loginPrimaryGreen = Color(0xFF5A7F30);
 
   int _selectedIndex = 0;
-
+  final List<Book> _userWishlist = [];
   final List<Book> featuredBooks = [
     Book(
       ebookId: '1',

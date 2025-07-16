@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:relaxread2/user/authorProfile.dart';
-import 'book.dart'; // Assuming book.dart is in the same directory or adjust path
-
-// Add this line to import the wishlist_page if you want to navigate directly there
-// import 'package:relaxread2/user/wishlist_page.dart'; // Uncomment if needed
+import 'book.dart';
+import 'package:relaxread2/user/wishlist_page.dart'; // Uncomment if needed
 
 class BookDetailPage extends StatefulWidget {
   final Book book;
@@ -264,14 +262,19 @@ class _BookDetailPageState extends State<BookDetailPage> {
             Center(
               child: ElevatedButton.icon(
                 onPressed: _isAddedToWishlist
-                    ? null // Disable button if already added
+                    ? null
                     : () {
                         setState(() {
-                          _isAddedToWishlist = true; // Update local state
+                          _isAddedToWishlist = true;
                         });
-                        widget.onAddToWishlist(
-                          widget.book,
-                        ); // Call the callback
+                        if (!globalWishlist.any(
+                          (b) =>
+                              b.title == widget.book.title &&
+                              b.author == widget.book.author,
+                        )) {
+                          globalWishlist.add(widget.book);
+                        }
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
@@ -279,7 +282,15 @@ class _BookDetailPageState extends State<BookDetailPage> {
                             ),
                           ),
                         );
+                        // 👇 Navigate to the WishlistPage
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WishlistPage(),
+                          ),
+                        );
                       },
+
                 icon: _isAddedToWishlist
                     ? const Icon(Icons.favorite)
                     : const Icon(Icons.favorite_border),
