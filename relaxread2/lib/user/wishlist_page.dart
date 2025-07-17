@@ -108,11 +108,11 @@ class _WishlistPageState extends State<WishlistPage> {
           .eq('book_id', bookId);
 
       await _refreshWishlist();
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Removed from wishlist')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Removed from wishlist')));
       }
     } catch (e) {
       print('Error deleting book: $e');
@@ -144,11 +144,13 @@ class _WishlistPageState extends State<WishlistPage> {
           'user_id': userId,
         },
         {
-          'book_id': '79caa916-63a9-4a66-af4f-65e4c5d9fc73', // HATI YANG TERPILIH
+          'book_id':
+              '79caa916-63a9-4a66-af4f-65e4c5d9fc73', // HATI YANG TERPILIH
           'user_id': userId,
         },
         {
-          'book_id': 'c71f39b9-27fb-484d-a06a-af92cec0efa6', // EX SKANDAL SEBELAH RUMAH
+          'book_id':
+              'c71f39b9-27fb-484d-a06a-af92cec0efa6', // EX SKANDAL SEBELAH RUMAH
           'user_id': userId,
         },
         {
@@ -188,18 +190,7 @@ class _WishlistPageState extends State<WishlistPage> {
         backgroundColor: theme.scaffoldBackgroundColor,
         foregroundColor: theme.textTheme.titleLarge?.color,
         elevation: 0.5,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshWishlist,
-            tooltip: 'Refresh',
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addDummyWishlistItems,
-            tooltip: 'Add Dummy Data',
-          ),
-        ],
+        actions: [],
       ),
       body: RefreshIndicator(
         onRefresh: _refreshWishlist,
@@ -218,7 +209,11 @@ class _WishlistPageState extends State<WishlistPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.red,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'Error loading wishlist',
@@ -251,7 +246,11 @@ class _WishlistPageState extends State<WishlistPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.menu_book, size: 48, color: Colors.grey),
+                        const Icon(
+                          Icons.menu_book,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'Your wishlist is empty',
@@ -323,16 +322,14 @@ class WishlistCard extends StatelessWidget {
       key: ValueKey(book.ebookId ?? '${book.title}_${book.author}'),
       direction: DismissDirection.endToStart,
       onDismissed: isDeleting ? null : onDismissed,
-      confirmDismiss: isDeleting 
+      confirmDismiss: isDeleting
           ? null
           : (direction) async {
               return await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Remove from Wishlist?'),
-                  content: Text(
-                    'Remove "${book.title}" from your wishlist?',
-                  ),
+                  content: Text('Remove "${book.title}" from your wishlist?'),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
@@ -349,6 +346,7 @@ class WishlistCard extends StatelessWidget {
                 ),
               );
             },
+
       background: Container(
         color: Colors.red.shade700,
         alignment: Alignment.centerRight,
@@ -451,10 +449,12 @@ class WishlistCard extends StatelessWidget {
                                   return Icon(
                                     index < book.rating!.floor()
                                         ? Icons.star
-                                        : (index == book.rating!.floor() && 
-                                            (book.rating! - book.rating!.floor()) >= 0.5)
-                                            ? Icons.star_half_outlined
-                                            : Icons.star_border,
+                                        : (index == book.rating!.floor() &&
+                                              (book.rating! -
+                                                      book.rating!.floor()) >=
+                                                  0.5)
+                                        ? Icons.star_half_outlined
+                                        : Icons.star_border,
                                     color: Colors.amber,
                                     size: 16,
                                   );
@@ -471,7 +471,8 @@ class WishlistCard extends StatelessWidget {
                             ),
                           const SizedBox(height: 8),
                           Text(
-                            book.personalNote ?? 'No additional information available.',
+                            book.personalNote ??
+                                'No additional information available.',
                             style: TextStyle(
                               fontSize: 13,
                               color: theme.textTheme.bodyMedium?.color,

@@ -22,13 +22,11 @@ class _BookSearchPageState extends State<BookSearchPage> {
   final List<String> _availableGenres = [
     'All Genres',
     'Fiction',
-    'Science',
     'Fantasy',
-    'History',
     'Biography',
     'Mystery',
-    'Programming',
-    'Science Fiction',
+    'Romance',
+    ' Thriller',
   ];
 
   final Map<String, double> _ratingThresholds = {
@@ -63,16 +61,20 @@ class _BookSearchPageState extends State<BookSearchPage> {
     }
 
     if (_selectedGenre != null && _selectedGenre != 'All Genres') {
-      currentBooks = currentBooks.where((book) =>
-          book.genre != null &&
-          book.genre!.toLowerCase() == _selectedGenre!.toLowerCase()).toList();
+      currentBooks = currentBooks
+          .where(
+            (book) =>
+                book.genre != null &&
+                book.genre!.toLowerCase() == _selectedGenre!.toLowerCase(),
+          )
+          .toList();
     }
 
     if (_selectedRating != null && _selectedRating != 'All Ratings') {
       final double minRating = _ratingThresholds[_selectedRating] ?? 0.0;
-      currentBooks = currentBooks.where(
-        (book) => book.rating != null && book.rating! >= minRating,
-      ).toList();
+      currentBooks = currentBooks
+          .where((book) => book.rating != null && book.rating! >= minRating)
+          .toList();
     }
 
     if (_selectedSortBy != null) {
@@ -153,20 +155,35 @@ class _BookSearchPageState extends State<BookSearchPage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildDropdown('All Genres', _availableGenres, _selectedGenre, (val) {
-                      setState(() => _selectedGenre = val);
-                      _applyFilters();
-                    }),
+                    _buildDropdown(
+                      'All Genres',
+                      _availableGenres,
+                      _selectedGenre,
+                      (val) {
+                        setState(() => _selectedGenre = val);
+                        _applyFilters();
+                      },
+                    ),
                     const SizedBox(width: 12),
-                    _buildDropdown('All Ratings', _ratingThresholds.keys.toList(), _selectedRating, (val) {
-                      setState(() => _selectedRating = val);
-                      _applyFilters();
-                    }),
+                    _buildDropdown(
+                      'All Ratings',
+                      _ratingThresholds.keys.toList(),
+                      _selectedRating,
+                      (val) {
+                        setState(() => _selectedRating = val);
+                        _applyFilters();
+                      },
+                    ),
                     const SizedBox(width: 12),
-                    _buildDropdown('Sort by', ['Most Liked', 'Newest', 'Oldest'], _selectedSortBy, (val) {
-                      setState(() => _selectedSortBy = val);
-                      _applyFilters();
-                    }),
+                    _buildDropdown(
+                      'Sort by',
+                      ['Most Liked', 'Newest', 'Oldest'],
+                      _selectedSortBy,
+                      (val) {
+                        setState(() => _selectedSortBy = val);
+                        _applyFilters();
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -179,9 +196,11 @@ class _BookSearchPageState extends State<BookSearchPage> {
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
                         childAspectRatio: 0.65,
-                        children: _filteredBooks.map((book) => BookCard(book: book)).toList(),
+                        children: _filteredBooks
+                            .map((book) => BookCard(book: book))
+                            .toList(),
                       ),
-              )
+              ),
             ],
           ),
         ),
@@ -189,7 +208,12 @@ class _BookSearchPageState extends State<BookSearchPage> {
     );
   }
 
-  Widget _buildDropdown(String hint, List<String> items, String? currentValue, ValueChanged<String?> onChanged) {
+  Widget _buildDropdown(
+    String hint,
+    List<String> items,
+    String? currentValue,
+    ValueChanged<String?> onChanged,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
@@ -200,7 +224,14 @@ class _BookSearchPageState extends State<BookSearchPage> {
         child: DropdownButton<String>(
           value: currentValue,
           hint: Text(hint),
-          items: items.map((item) => DropdownMenuItem<String>(value: item == hint ? null : item, child: Text(item))).toList(),
+          items: items
+              .map(
+                (item) => DropdownMenuItem<String>(
+                  value: item == hint ? null : item,
+                  child: Text(item),
+                ),
+              )
+              .toList(),
           onChanged: onChanged,
         ),
       ),
@@ -218,7 +249,8 @@ class BookCard extends StatelessWidget {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => BookDetailPage(book: book, onAddToWishlist: (b) {}, wishlist: []),
+          builder: (_) =>
+              BookDetailPage(book: book, onAddToWishlist: (b) {}, wishlist: []),
         ),
       ),
       child: Card(
@@ -226,7 +258,9 @@ class BookCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
               child: Image.network(
                 book.imageUrl ?? '',
                 height: 150,
@@ -244,20 +278,36 @@ class BookCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(book.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    book.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 4),
-                  Text(book.author, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  if (book.genre != null) Text('Genre: ${book.genre}', style: const TextStyle(fontSize: 12)),
+                  Text(
+                    book.author,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (book.genre != null)
+                    Text(
+                      'Genre: ${book.genre}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
                   if (book.rating != null)
                     Row(
                       children: [
                         const Icon(Icons.star, size: 14, color: Colors.amber),
-                        Text('${book.rating!.toStringAsFixed(1)}', style: const TextStyle(fontSize: 12)),
+                        Text(
+                          '${book.rating!.toStringAsFixed(1)}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
                       ],
                     ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
