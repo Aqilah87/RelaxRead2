@@ -30,9 +30,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -58,9 +56,10 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // Get user_type from user_metadata
       final metadata = user.userMetadata;
-      final userTypeFromMetadata = metadata?['user_type'];
+      final fullName = metadata?['full_name'] ?? 'Guest';             // ✅ Correct name
+      final userTypeFromMetadata = metadata?['user_type'];            // ✅ Correct role
+
 
       print('User metadata: $metadata');
 
@@ -82,7 +81,6 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // Login success
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login Successful!')),
       );
@@ -97,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
           context,
           MaterialPageRoute(
             builder: (context) => HomePage(
-              userName: user.email ?? 'User',
+              userName: fullName,                     // ✅ pass name properly
               userEmail: user.email ?? '',
             ),
           ),
@@ -117,6 +115,7 @@ class _LoginPageState extends State<LoginPage> {
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

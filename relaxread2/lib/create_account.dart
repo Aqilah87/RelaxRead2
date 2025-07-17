@@ -47,13 +47,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       _isLoading = true;
     });
 
-    try {
+      try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      final fullName = _usernameController.text.trim(); // ✅ this is now the full name
+
       final response = await Supabase.instance.client.auth.signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: email,
+        password: password,
         data: {
-          'username': _usernameController.text.trim(),
-          'user_type': widget.userType,
+          'full_name': fullName,               // ✅ stores full name
+          'user_type': widget.userType,        // ✅ stores user type
         },
       );
 
@@ -64,13 +68,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
             content: Text('Account created! Check your email to confirm.'),
           ),
         );
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => LoginPage(userType: widget.userType),
           ),
         );
+
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sign-up failed. Please try again.')),
@@ -90,6 +94,58 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       });
     }
   }
+
+  Widget _buildPasswordField({ // add underscore here ✅
+    required String label,
+    required TextEditingController controller,
+    required String? Function(String?) validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: true,
+          decoration: InputDecoration( // you may adjust as needed
+            hintText: 'Enter $label',
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+          ),
+          validator: validator,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    TextInputType keyboardType = TextInputType.text,
+    required String? Function(String?) validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: 'Enter $label',
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+          ),
+          validator: validator,
+        ),
+      ],
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +182,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                   const SizedBox(height: 40),
                   _buildTextField(
-                    label: 'Username',
+                    label: 'Full name',
                     controller: _usernameController,
                     validator: (value) =>
                         (value == null || value.isEmpty) ? 'Please enter a username' : null,
@@ -230,47 +286,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTextField({
-    required String label,
-    required TextEditingController controller,
-    TextInputType keyboardType = TextInputType.text,
-    required String? Function(String?) validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 16, color: Colors.black87)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          decoration: _inputDecoration(),
-          validator: validator,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordField({
-    required String label,
-    required TextEditingController controller,
-    required String? Function(String?) validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 16, color: Colors.black87)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          obscureText: true,
-          decoration: _inputDecoration(),
-          validator: validator,
-        ),
-      ],
     );
   }
 
