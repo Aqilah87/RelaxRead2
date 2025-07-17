@@ -1,3 +1,4 @@
+// book_detail_page.dart
 import 'package:flutter/material.dart';
 import 'package:relaxread2/user/authorProfile.dart';
 import 'book.dart';
@@ -78,13 +79,13 @@ class _BookDetailPageState extends State<BookDetailPage> {
         _userRating = 0;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Comment added!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Comment added!')));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Comment cannot be empty!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Comment cannot be empty!')));
     }
   }
 
@@ -176,10 +177,10 @@ class _BookDetailPageState extends State<BookDetailPage> {
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
 
-            // 📝 Description
+            // 📝 Description (Updated to use the 'description' field)
             const SizedBox(height: 16.0),
             Text(
-              widget.book.personalNote ?? 'No description available.',
+              widget.book.description ?? 'No description available.',
               style: const TextStyle(fontSize: 16),
             ),
 

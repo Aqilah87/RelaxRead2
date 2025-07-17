@@ -1,24 +1,22 @@
 // home_page.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Import provider
+import 'package:provider/provider.dart';
 import 'package:relaxread2/user/user_profile.dart';
 import 'package:relaxread2/user/settings_page.dart';
-import 'package:relaxread2/user/wishlist_page.dart'; // Assuming this is a separate page for wishlist
-import 'package:relaxread2/user/book.dart'; // This import should contain your Book class and globalWishlist
+import 'package:relaxread2/user/wishlist_page.dart';
+import 'package:relaxread2/user/book.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:relaxread2/services/supabase_service.dart'; // Add this import for the Supabase service
 import 'book_search.dart';
-import 'book_detail_page.dart'; // Import the BookDetailPage
+import 'book_detail_page.dart';
 import 'package:relaxread2/theme_provider.dart';
 
 class HomePage extends StatefulWidget {
-  // Add final properties to store userName and userEmail
   final String userName;
   final String userEmail;
 
-  const HomePage({
-    Key? key,
-    required this.userName, // Now correctly required and stored
-    required this.userEmail, // Now correctly required and stored
-  }) : super(key: key);
+  const HomePage({Key? key, required this.userName, required this.userEmail})
+    : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -30,56 +28,33 @@ class _HomePageState extends State<HomePage> {
 
   int _selectedIndex = 0;
   final List<Book> _userWishlist = [];
-  final List<Book> featuredBooks = [
-    Book(
-      ebookId: '1',
-      title: 'Calon Isteri Tuan Haider', // Fixed typo
-      author: 'Zati Mohd',
-      imageUrl:
-          'https://cdn.gramedia.com/uploads/items/9786020630737_rev2-01.jpg', // More realistic URL
-      personalNote:
-          'A heartfelt romance with emotional depth — where love, healing, and fatherhood intertwine unexpectedly.',
-      publisher: 'Publisher A', // Added for completeness based on Book class
-      monthPublish: 'Jan',
-      yearPublisher: '2023',
-    ),
-    Book(
-      ebookId: '2',
-      title: 'My Bae.. Tengku Fahd',
-      author: 'Zati Mohd',
-      imageUrl:
-          'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1483103331i/33792078.jpg', // More realistic URL
-      personalNote:
-          'A messy marriage of fate and heartbreak — when drama, exes, and secrets collide with unexpected love.',
-      publisher: 'Publisher B',
-      monthPublish: 'Feb',
-      yearPublisher: '2022',
-    ),
-    Book(
-      ebookId: '3',
-      title: 'Sekecewa Apa Pun Kau',
-      author: 'Alyn',
-      imageUrl:
-          'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1586716075l/52324707._SX318_SY475_.jpg', // More realistic URL
-      personalNote:
-          'A bitter-sweet tale of betrayal and resilience — where love is tested, dignity is shattered, and healing becomes the hardest chapter.',
-      publisher: 'Publisher C',
-      monthPublish: 'Mar',
-      yearPublisher: '2021',
-    ),
-    Book(
-      ebookId: '4',
-      title: 'Bos Paling Romantik',
-      author: 'Crystal Anabella',
-      imageUrl:
-          'https://m.media-amazon.com/images/I/41-lS90n-TL._AC_UF1000,1000_QL80_.jpg', // More realistic URL
-      personalNote:
-          'A playful enemies-to-lovers romance packed with teasing, tension, and one dangerously charming boss.',
-      publisher: 'Publisher D',
-      monthPublish: 'Apr',
-      yearPublisher: '2024',
-    ),
-  ];
+
+  // Initialize SupabaseService to fetch data
+  final SupabaseService _supabaseService = SupabaseService();
+  List<Book> _featuredBooks = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFeaturedBooks();
+  }
+
+  Future<void> _fetchFeaturedBooks() async {
+    try {
+      final books = await _supabaseService.fetchBooks();
+      setState(() {
+        _featuredBooks = books;
+        _isLoading = false;
+      });
+    } catch (e) {
+      // Handle any errors that occur during fetching
+      print('Error fetching featured books: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   List<Widget> _widgetOptions(BuildContext context) => <Widget>[
     // 🏠 Tab 0 – Home
@@ -89,14 +64,11 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            // Use widget.userName to display the passed user name
             'Hello ${widget.userName},',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w600,
-              color: Theme.of(
-                context,
-              ).textTheme.bodyMedium!.color, // Use theme text color
+              color: Theme.of(context).textTheme.bodyMedium!.color,
             ),
           ),
           const SizedBox(height: 8),
@@ -104,23 +76,17 @@ class _HomePageState extends State<HomePage> {
             'What would you like to read today?',
             style: TextStyle(
               fontSize: 18,
-              color: Theme.of(
-                context,
-              ).textTheme.bodySmall!.color, // Use theme subtitle color
+              color: Theme.of(context).textTheme.bodySmall!.color,
             ),
           ),
           const SizedBox(height: 30),
           TextField(
             decoration: InputDecoration(
               hintText: 'Search for books, authors...',
-              hintStyle: Theme.of(
-                context,
-              ).inputDecorationTheme.hintStyle, // Use theme hint style
+              hintStyle: Theme.of(context).inputDecorationTheme.hintStyle,
               prefixIcon: const Icon(Icons.search, color: primaryGreen),
               filled: true,
-              fillColor: Theme.of(
-                context,
-              ).cardColor, // Use theme card color for fill
+              fillColor: Theme.of(context).cardColor,
               border: Theme.of(context).inputDecorationTheme.border,
               focusedBorder: Theme.of(
                 context,
@@ -131,7 +97,7 @@ class _HomePageState extends State<HomePage> {
             ),
             style: TextStyle(
               color: Theme.of(context).textTheme.bodyMedium!.color,
-            ), // Input text color
+            ),
           ),
           const SizedBox(height: 30),
           Text(
@@ -139,108 +105,112 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: loginPrimaryGreen, // This color might remain constant
+              color: loginPrimaryGreen,
             ),
           ),
           const SizedBox(height: 15),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: featuredBooks.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16.0,
-              mainAxisSpacing: 16.0,
-              childAspectRatio: 0.7,
-            ),
-            itemBuilder: (context, index) {
-              final book = featuredBooks[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      // When navigating to BookDetailPage, you no longer need to pass
-                      // onAddToWishlist or wishlist, as BookDetailPage will use globalWishlist directly.
-                      builder: (context) => BookDetailPage(
-                        book: book,
-                        onAddToWishlist: (Book) {},
-                        wishlist: [],
-                      ),
-                    ),
-                  );
-                },
-                child: Card(
-                  color: Theme.of(context).cardColor, // Use theme card color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  elevation: 3.0,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12.0),
+          // Check for loading state or no data
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(color: loginPrimaryGreen),
+            )
+          else if (_featuredBooks.isEmpty)
+            const Center(child: Text('No featured books available.'))
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _featuredBooks.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16.0,
+                mainAxisSpacing: 16.0,
+                childAspectRatio: 0.7,
+              ),
+              itemBuilder: (context, index) {
+                final book = _featuredBooks[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BookDetailPage(
+                          book: book,
+                          onAddToWishlist: (Book) {},
+                          wishlist: [],
                         ),
-                        child: Image.network(
-                          book.imageUrl ?? '',
-                          height: 150,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                      ),
+                    );
+                  },
+                  child: Card(
+                    color: Theme.of(context).cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    elevation: 3.0,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12.0),
+                          ),
+                          child: Image.network(
+                            book.imageUrl ?? '',
                             height: 150,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey[800]
-                                : Colors
-                                      .grey[300], // Adjust placeholder based on theme
-                            child: const Icon(
-                              Icons.image_not_supported,
-                              color: Colors.grey,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 150,
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300],
+                              child: const Icon(
+                                Icons.image_not_supported,
+                                color: Colors.grey,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              book.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium!
-                                    .color, // Use theme text color
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                book.title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium!.color,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              book.author,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall!
-                                    .color, // Use theme subtitle color
+                              const SizedBox(height: 4),
+                              Text(
+                                book.author,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodySmall!.color,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
         ],
       ),
     ),
@@ -249,9 +219,9 @@ class _HomePageState extends State<HomePage> {
     const BookSearchPage(),
 
     // ❤️ Tab 2 – Wishlist - Now directly uses the WishlistPage
-    const WishlistPage(), // Instantiate the WishlistPage
+    const WishlistPage(),
     // ⚙️ Tab 3 – Settings
-    const SettingsPage(), // Simply create an instance of SettingsPage
+    const SettingsPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -263,14 +233,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(
-        context,
-      ).scaffoldBackgroundColor, // Use theme background color
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Theme.of(
-          context,
-        ).appBarTheme.backgroundColor, // Use theme app bar color
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 1.0,
         title: Row(
           children: [
@@ -291,13 +257,12 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(
               Icons.person_outline,
               color: Theme.of(context).appBarTheme.foregroundColor,
-            ), // Use app bar foreground color for icon
+            ),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => UserProfilePage(
-                    // Pass the actual userName and userEmail received by HomePage
                     userName: widget.userName,
                     userEmail: widget.userEmail,
                   ),
@@ -309,9 +274,9 @@ class _HomePageState extends State<HomePage> {
       ),
       body: _widgetOptions(context).elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Theme.of(context)
-            .bottomNavigationBarTheme
-            .backgroundColor, // Use theme background color
+        backgroundColor: Theme.of(
+          context,
+        ).bottomNavigationBarTheme.backgroundColor,
         selectedItemColor: Theme.of(
           context,
         ).bottomNavigationBarTheme.selectedItemColor,
