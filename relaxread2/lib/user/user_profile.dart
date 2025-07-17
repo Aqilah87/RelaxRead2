@@ -60,10 +60,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       
       if (!mounted) return;
       setState(() {
-        _name = data['name'] ?? 'No Name';
+        _name = data['name'] ?? 'Qash';
         _email = user.email ?? 'No Email';
         _loading = false;
       });
+
     } catch (e) {
       if (mounted) {
         setState(() => _loading = false);
