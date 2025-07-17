@@ -1,22 +1,95 @@
 import 'package:flutter/material.dart';
 
-class ManageUsersPage extends StatelessWidget {
+class ManageUsersPage extends StatefulWidget {
   const ManageUsersPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // You'll likely want to fetch users from a database or API here
-    final List<Map<String, String>> users = [
-      {'name': 'Alice Smith', 'email': 'alice.s@example.com', 'role': 'User'},
-      {'name': 'Bob Johnson', 'email': 'bob.j@example.com', 'role': 'User'},
-      {
-        'name': 'Charlie Brown',
-        'email': 'charlie.b@example.com',
-        'role': 'Admin',
-      },
-      {'name': 'Diana Prince', 'email': 'diana.p@example.com', 'role': 'User'},
-    ];
+  State<ManageUsersPage> createState() => _ManageUsersPageState();
+}
 
+class _ManageUsersPageState extends State<ManageUsersPage> {
+  List<Map<String, String>> users = [
+    {'name': 'Alice Smith', 'email': 'alice.s@example.com', 'role': 'User'},
+    {'name': 'Bob Johnson', 'email': 'bob.j@example.com', 'role': 'User'},
+    {
+      'name': 'Charlie Brown',
+      'email': 'charlie.b@example.com',
+      'role': 'Admin',
+    },
+    {'name': 'Diana Prince', 'email': 'diana.p@example.com', 'role': 'User'},
+  ];
+
+  void _deleteUser(int index) {
+    final deletedUser = users[index]['name'];
+    setState(() {
+      users.removeAt(index);
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$deletedUser deleted')));
+  }
+
+  void _editUser(int index) async {
+    final user = users[index];
+    TextEditingController nameController = TextEditingController(
+      text: user['name'],
+    );
+    TextEditingController emailController = TextEditingController(
+      text: user['email'],
+    );
+    TextEditingController roleController = TextEditingController(
+      text: user['role'],
+    );
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit User'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            TextField(
+              controller: roleController,
+              decoration: const InputDecoration(labelText: 'Role'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                users[index] = {
+                  'name': nameController.text,
+                  'email': emailController.text,
+                  'role': roleController.text,
+                };
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${nameController.text} updated')),
+              );
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -28,9 +101,7 @@ class ManageUsersPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.color, // Adjust color based on theme
+                color: Theme.of(context).textTheme.titleLarge?.color,
               ),
             ),
             const SizedBox(height: 20),
@@ -65,23 +136,11 @@ class ManageUsersPage extends StatelessWidget {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () {
-                              // Implement edit user logic
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Edit ${user['name']}')),
-                              );
-                            },
+                            onPressed: () => _editUser(index),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              // Implement delete user logic
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Delete ${user['name']}'),
-                                ),
-                              );
-                            },
+                            onPressed: () => _deleteUser(index),
                           ),
                         ],
                       ),
@@ -94,7 +153,6 @@ class ManageUsersPage extends StatelessWidget {
             Center(
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // Implement add new user logic
                   ScaffoldMessenger.of(
                     context,
                   ).showSnackBar(const SnackBar(content: Text('Add New User')));
@@ -102,7 +160,7 @@ class ManageUsersPage extends StatelessWidget {
                 icon: const Icon(Icons.person_add),
                 label: const Text('Add New User'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF6B923C), // Primary green color
+                  backgroundColor: const Color(0xFF6B923C),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
