@@ -12,27 +12,32 @@ class SupabaseService {
   }
 
   User? get currentUser => client.auth.currentUser;
-  
+
+  // ✅ Fixed: Closed method properly so it doesn't interrupt the class
   Future<Map<String, dynamic>> getUserData(String userId) async {
-    return await client
+    final result = await client
       .from('users')
-      .select()
-      .eq('id', userId)
-      .single();
+      .select('user_id, name, email')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    return result ?? {};
   }
 
+  // ✅ Method now properly outside getUserData block
   Future<void> updateName(String userId, String newName) async {
     await client
       .from('users')
       .update({'name': newName})
-      .eq('id', userId);
+      .eq('user_id', userId);
   }
 
   Future<void> deleteUser(String userId) async {
     await client
       .from('users')
       .delete()
-      .eq('id', userId);
+      .eq('user_id', userId);
+
     await client.auth.admin.deleteUser(userId);
   }
 

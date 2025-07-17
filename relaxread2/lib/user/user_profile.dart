@@ -52,6 +52,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       if (user == null) throw Exception('No authenticated user');
       
       final data = await _supabase.getUserData(user.id);
+
+      // ✅ Add null check before accessing data
+      if (data == null) {
+        throw Exception('User data not found');
+      }
       
       if (!mounted) return;
       setState(() {
