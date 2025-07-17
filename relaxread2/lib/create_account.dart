@@ -126,7 +126,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                   const SizedBox(height: 40),
                   _buildTextField(
-                    label: 'Username',
+                    label: 'me',
                     controller: _usernameController,
                     validator: (value) =>
                         (value == null || value.isEmpty) ? 'Please enter a username' : null,
