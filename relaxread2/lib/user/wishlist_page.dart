@@ -35,25 +35,24 @@ class _WishlistPageState extends State<WishlistPage> {
       if (userId == null) return [];
 
       final response = await supabase
-          .from('user_wishlists')
-          .select('''
-            book_id,
-            books:book_id (
-              id,
-              title,
-              author,
-              genre,
-              rating,
-              description,
-              image_url,
-              page_number,
-              month_published,
-              year_published,
-              publisher,
-              ebook_id
-            )
-          ''')
-          .eq('user_id', userId);
+      .from('user_wishlists')
+      .select('''
+        book_id,
+        books:book_id (
+          title,
+          author,
+          genre,
+          description,
+          image_url,
+          page_number,
+          month_published,
+          year_published,
+          publisher,
+          ebook_id
+        )
+      ''') // 🛠️ ✅ Updated: removed 'rating' field from books block
+      .eq('user_id', userId);
+
 
       if (response == null) return [];
 

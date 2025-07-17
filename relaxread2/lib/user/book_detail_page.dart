@@ -1,93 +1,124 @@
-// book_detail_page.dart
-import 'package:flutter/material.dart';
-import 'package:relaxread2/user/authorProfile.dart';
-import 'book.dart';
-import 'package:relaxread2/user/wishlist_page.dart';
+  import 'package:flutter/material.dart';
+  import 'package:supabase_flutter/supabase_flutter.dart';
+  import 'book.dart';
+  import 'wishlist_page.dart';
+  import 'package:relaxread2/user/authorProfile.dart';
 
-class BookDetailPage extends StatefulWidget {
-  final Book book;
-  final Function(Book) onAddToWishlist;
-  final List<Book> wishlist;
+  class BookDetailPage extends StatefulWidget {
+    final Book book;
+    final Function(Book) onAddToWishlist;
+    final List<Book> wishlist;
 
-  const BookDetailPage({
-    Key? key,
-    required this.book,
-    required this.onAddToWishlist,
-    required this.wishlist,
-  }) : super(key: key);
+    const BookDetailPage({
+      Key? key,
+      required this.book,
+      required this.onAddToWishlist,
+      required this.wishlist,
+    }) : super(key: key);
 
-  @override
-  State<BookDetailPage> createState() => _BookDetailPageState();
-}
-
-class _BookDetailPageState extends State<BookDetailPage> {
-  int _userRating = 0;
-  final TextEditingController _commentController = TextEditingController();
-  bool _isAddedToWishlist = false;
-
-  final List<Map<String, dynamic>> _comments = [
-    {
-      'user': 'Jane Doe',
-      'comment': 'This book was absolutely amazing! Highly recommend it.',
-      'rating': 5,
-    },
-    {
-      'user': 'John Smith',
-      'comment': 'A good read, but I found the ending a bit rushed.',
-      'rating': 3,
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _checkIfAlreadyInWishlist();
+    @override
+    State<BookDetailPage> createState() => _BookDetailPageState();
   }
 
-  void _checkIfAlreadyInWishlist() {
-    _isAddedToWishlist = widget.wishlist.any(
-      (b) => b.title == widget.book.title && b.author == widget.book.author,
-    );
-  }
+  class _BookDetailPageState extends State<BookDetailPage> {
+    final TextEditingController _commentController = TextEditingController();
+    bool _isAddedToWishlist = false;
+    int _userRating = 0;
 
-  @override
-  void dispose() {
-    _commentController.dispose();
-    super.dispose();
-  }
+    final List<Map<String, dynamic>> _comments = [];
 
-  void _submitComment() {
-    final String commentText = _commentController.text.trim();
+    @override
+    void initState() {
+      super.initState();
+      _checkIfAlreadyInWishlist();
+    }
 
-    if (_userRating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a rating before commenting.'),
-        ),
+    void _checkIfAlreadyInWishlist() {
+      _isAddedToWishlist = widget.wishlist.any(
+        (b) => b.ebookId == widget.book.ebookId,
       );
-      return;
     }
 
-    if (commentText.isNotEmpty) {
-      setState(() {
-        _comments.add({
-          'user': 'You',
-          'comment': commentText,
-          'rating': _userRating,
+    Future<void> _handleAddToWishlist() async {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please log in to use wishlist')),
+        );
+        return;
+      }
+
+      try {
+        final existing = await Supabase.instance.client
+            .from('wishlist')
+            .select()
+            .eq('user_id', user.id)
+            .eq('book_id', widget.book.ebookId)
+            .maybeSingle();
+
+        if (existing != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${widget.book.title} is already in your wishlist')),
+          );
+          return;
+        }
+
+        await Supabase.instance.client.from('wishlist').insert({
+          'user_id': user.id,
+          'book_id': widget.book.ebookId,
         });
-        _commentController.clear();
-        _userRating = 0;
-      });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Comment added!')));
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Comment cannot be empty!')));
+        setState(() {
+          _isAddedToWishlist = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${widget.book.title} added to wishlist')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add to wishlist: $e')),
+        );
+      }
     }
-  }
+
+    void _submitComment() {
+      final commentText = _commentController.text.trim();
+
+      if (_userRating == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a rating')),
+        );
+        return;
+      }
+
+      if (commentText.isNotEmpty) {
+        setState(() {
+          _comments.add({
+            'user': 'You',
+            'comment': commentText,
+            'rating': _userRating,
+          });
+          _commentController.clear();
+          _userRating = 0;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comment added')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comment cannot be empty')),
+        );
+      }
+    }
+
+    @override
+    void dispose() {
+      _commentController.dispose();
+      super.dispose();
+    }
+
 
   Widget _buildComment(String userName, String commentText, int rating) {
     return Column(
@@ -157,7 +188,13 @@ class _BookDetailPageState extends State<BookDetailPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AuthorProfilePage()),
+                  MaterialPageRoute(
+                    builder: (context) => AuthorProfilePage(
+                      authorName: widget.book.author,
+                      profileImageUrl: 'https://placehold.co/150x150.png?text=${widget.book.author}', // or your own image
+                      booksByAuthor: [], // 🔧 Ideally filtered from all books
+                    ),
+                  ),
                 );
               },
               child: Text(

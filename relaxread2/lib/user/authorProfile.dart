@@ -1,40 +1,25 @@
 import 'package:flutter/material.dart';
-import 'book.dart'; // reuse your Book class
+import 'book.dart';
+import 'book_detail_page.dart';
 
 class AuthorProfilePage extends StatelessWidget {
-  final String authorName = 'Aisyah Rahman';
-  final String profileImageUrl =
-      'https://placehold.co/150x150.png?text=Aisyah'; // replace with actual
+  final String authorName;
+  final String profileImageUrl;
+  final List<Book> booksByAuthor;
 
-  final List<Book> booksByAuthor = [
-    Book(
-      title: 'Moonlit Love',
-      author: 'Aisyah Rahman',
-      imageUrl: 'https://placehold.co/120x180.png?text=Moonlit+Love',
-      personalNote: '',
-    ),
-    Book(
-      title: 'The Wedding Promise',
-      author: 'Aisyah Rahman',
-      imageUrl: 'https://placehold.co/120x180.png?text=Wedding+Promise',
-      personalNote: '',
-    ),
-    Book(
-      title: 'Echoes of the Past',
-      author: 'Aisyah Rahman',
-      imageUrl: 'https://placehold.co/120x180.png?text=Echoes+Past',
-      personalNote: '',
-    ),
-  ];
-
-  AuthorProfilePage({super.key});
+  const AuthorProfilePage({
+    super.key,
+    required this.authorName,
+    required this.profileImageUrl,
+    required this.booksByAuthor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F3F7),
       appBar: AppBar(
-        title: const Text('Author Profile'),
+        title: Text(authorName),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0.5,
@@ -47,7 +32,9 @@ class AuthorProfilePage extends StatelessWidget {
             // 🖼 Profile Image
             CircleAvatar(
               radius: 50,
-              backgroundImage: NetworkImage(profileImageUrl),
+              backgroundImage: profileImageUrl.isNotEmpty
+                  ? NetworkImage(profileImageUrl)
+                  : const AssetImage('assets/default_author.png') as ImageProvider,
             ),
             const SizedBox(height: 16),
             // 📝 Author Name
@@ -59,9 +46,9 @@ class AuthorProfilePage extends StatelessWidget {
             // 🔔 Follow Button
             ElevatedButton(
               onPressed: () {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Followed!')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Followed!')),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
@@ -81,54 +68,67 @@ class AuthorProfilePage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Books by $authorName',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               ),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 220,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: booksByAuthor.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 16),
-                itemBuilder: (context, index) {
-                  final book = booksByAuthor[index];
-                  return Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          book.imageUrl ?? '',
-                          width: 120,
-                          height: 180,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            width: 120,
-                            height: 180,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.image_not_supported),
+            booksByAuthor.isEmpty
+                ? const Text('No books available for this author yet.')
+                : SizedBox(
+                    height: 220,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: booksByAuthor.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 16),
+                      itemBuilder: (context, index) {
+                        final book = booksByAuthor[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BookDetailPage(
+                                  book: book,
+                                  wishlist: [],
+                                  onAddToWishlist: (_) {},
+                                ),
+                              ),
+                            );
+                          },
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  book.imageUrl ?? '',
+                                  width: 120,
+                                  height: 180,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 120,
+                                    height: 180,
+                                    color: Colors.grey[300],
+                                    child: const Icon(Icons.image_not_supported),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: 120,
+                                child: Text(
+                                  book.title,
+                                  style: const TextStyle(fontWeight: FontWeight.w500),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: 120,
-                        child: Text(
-                          book.title,
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
+                        );
+                      },
+                    ),
+                  ),
           ],
         ),
       ),

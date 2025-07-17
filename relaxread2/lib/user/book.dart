@@ -8,7 +8,7 @@ class Book {
   final String author;
   final String? imageUrl;
   final String? personalNote;
-  final String? description; // Added description field
+  final String? description;
   final int? pageNumber;
   final String? monthPublish;
   final String? yearPublisher;
@@ -22,7 +22,7 @@ class Book {
     required this.author,
     this.imageUrl,
     this.personalNote,
-    this.description, // Added to constructor
+    this.description,
     this.pageNumber,
     this.monthPublish,
     this.yearPublisher,
@@ -30,6 +30,9 @@ class Book {
     this.genre,
     this.rating,
   }) : ebookId = ebookId ?? uuid.v4();
+
+  /// 👇 Add this getter for compatibility
+  String get id => ebookId;
 
   /// Parse from Supabase row
   factory Book.fromMap(Map<String, dynamic> map) {
@@ -39,7 +42,7 @@ class Book {
       author: map['author'] ?? '',
       imageUrl: map['image_url'],
       personalNote: map['personal_note'],
-      description: map['description'], // Added to fromMap
+      description: map['description'],
       pageNumber: map['page_number'] is int
           ? map['page_number']
           : int.tryParse(map['page_number']?.toString() ?? ''),
@@ -58,7 +61,7 @@ class Book {
       'author': author,
       'image_url': imageUrl,
       'personal_note': personalNote,
-      'description': description, // Added to toMap
+      'description': description,
       'page_number': pageNumber,
       'month_publish': monthPublish,
       'year_publisher': yearPublisher,
