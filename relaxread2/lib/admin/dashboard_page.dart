@@ -91,9 +91,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching data: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching data: $error')));
     }
   }
 
@@ -131,15 +131,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
     final List<Widget> pages = [
       _buildDashboardPage(isDarkMode),
-      AdminDashboardPage(
-       /* initialEbooks: _allBooks,
+      // --- FIX: Pass the correct page with required data and callbacks ---
+      ManageBooksPage(
+        initialEbooks: _allBooks,
         onBookAdded: (book) => _refreshData(),
         onBookUpdated: (book) => _refreshData(),
-        onBookDeleted: (id) => _refreshData(),*/
+        onBookDeleted: (id) => _refreshData(),
       ),
-      ReviewManagementPage(
-        /*onReviewDeleted: () => _refreshData(),*/
-      ),
+      ReviewManagementPage(onReviewDeleted: () => _refreshData()),
       const ManageUsersPage(),
       const AdminSettingsPage(),
     ];
@@ -165,7 +164,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               color: _appBarTitleColor(isDarkMode),
             ),
             onPressed: themeProvider.toggleTheme,
-            tooltip: isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+            tooltip: isDarkMode
+                ? 'Switch to Light Mode'
+                : 'Switch to Dark Mode',
           ),
         ],
       ),
@@ -192,11 +193,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Text(
+                        const Text(
                           'Book Admin',
                           style: TextStyle(color: Colors.white, fontSize: 18),
                         ),
-                        Text(
+                        const Text(
                           'admin@bookapp.com',
                           style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
@@ -235,7 +236,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   const Divider(),
                   ListTile(
                     leading: const Icon(Icons.logout, color: Colors.red),
-                    title: const Text('Logout', style: TextStyle(color: Colors.red)),
+                    title: const Text(
+                      'Logout',
+                      style: TextStyle(color: Colors.red),
+                    ),
                     onTap: () {
                       Navigator.of(context).pushNamedAndRemoveUntil(
                         '/',
@@ -268,10 +272,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                               item['icon'],
                               color: _drawerIconColor(isDarkMode),
                             ),
-                            selectedIcon: Icon(item['icon'], color: primaryGreen),
+                            selectedIcon: Icon(
+                              item['icon'],
+                              color: primaryGreen,
+                            ),
                             label: Text(
                               item['label'],
-                              style: TextStyle(color: _drawerTextColor(isDarkMode)),
+                              style: TextStyle(
+                                color: _drawerTextColor(isDarkMode),
+                              ),
                             ),
                           );
                         }).toList(),
@@ -298,7 +307,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           ],
                         ),
                       ),
-                    Expanded(child: pages[_selectedIndex]),
+                    Expanded(
+                      // This ensures the current page fills the remaining space.
+                      child: pages[_selectedIndex],
+                    ),
                   ],
                 );
               },

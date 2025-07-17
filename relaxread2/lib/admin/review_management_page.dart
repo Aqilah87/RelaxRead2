@@ -30,13 +30,20 @@ class Review {
       reviewerName: map['reviewer_name'] ?? 'Anonymous',
       reviewText: map['review_text'] ?? '',
       rating: (map['rating'] ?? 0.0).toDouble(),
-      reviewDate: DateTime.parse(map['created_at'] ?? DateTime.now().toString()),
+      reviewDate: DateTime.parse(
+        map['created_at'] ?? DateTime.now().toString(),
+      ),
     );
   }
 }
 
 class ReviewManagementPage extends StatefulWidget {
-  const ReviewManagementPage({super.key});
+  final Future<void> Function() onReviewDeleted; // Declare the callback
+
+  const ReviewManagementPage({
+    super.key,
+    required this.onReviewDeleted, // Add it to the constructor
+  });
 
   @override
   State<ReviewManagementPage> createState() => _ReviewManagementPageState();
@@ -102,6 +109,10 @@ class _ReviewManagementPageState extends State<ReviewManagementPage> {
       setState(() {
         _currentReviews.removeWhere((r) => r.reviewId == reviewId);
       });
+
+      // --- FIX: Call the callback to notify the parent widget ---
+      await widget.onReviewDeleted();
+
       _showSuccessSnackbar('Review deleted successfully');
     } catch (e) {
       _showErrorSnackbar('Failed to delete review: $e');
@@ -113,9 +124,7 @@ class _ReviewManagementPageState extends State<ReviewManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Review'),
-        content: Text(
-          'Delete review by ${review.reviewerName}?',
-        ),
+        content: Text('Delete review by ${review.reviewerName}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -126,10 +135,7 @@ class _ReviewManagementPageState extends State<ReviewManagementPage> {
               Navigator.pop(context);
               _deleteReview(review.reviewId);
             },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -138,19 +144,13 @@ class _ReviewManagementPageState extends State<ReviewManagementPage> {
 
   void _showSuccessSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
     );
   }
 
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -204,20 +204,14 @@ class _ReviewManagementPageState extends State<ReviewManagementPage> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  review.reviewText,
-                  style: const TextStyle(fontSize: 14),
-                ),
+                Text(review.reviewText, style: const TextStyle(fontSize: 14)),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       review.reviewDate.toString().split(' ')[0],
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
@@ -262,10 +256,7 @@ class _ReviewManagementPageState extends State<ReviewManagementPage> {
         title: const Text('Review Management'),
         backgroundColor: primaryGreen,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadReviews,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadReviews),
         ],
       ),
       body: Column(
@@ -287,15 +278,15 @@ class _ReviewManagementPageState extends State<ReviewManagementPage> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _filteredReviews.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                        onRefresh: _loadReviews,
-                        child: ListView.builder(
-                          itemCount: _filteredReviews.length,
-                          itemBuilder: (context, index) =>
-                              _buildReviewCard(_filteredReviews[index]),
-                        ),
-                      ),
+                ? _buildEmptyState()
+                : RefreshIndicator(
+                    onRefresh: _loadReviews,
+                    child: ListView.builder(
+                      itemCount: _filteredReviews.length,
+                      itemBuilder: (context, index) =>
+                          _buildReviewCard(_filteredReviews[index]),
+                    ),
+                  ),
           ),
         ],
       ),

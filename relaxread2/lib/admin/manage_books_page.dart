@@ -103,7 +103,10 @@ class _ManageBooksPageState extends State<ManageBooksPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel', style: TextStyle(color: primaryGreen)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: primaryGreen),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -141,6 +144,15 @@ class _ManageBooksPageState extends State<ManageBooksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // --- This is the fix ---
+      appBar: AppBar(
+        title: const Text('Manage Books'),
+        backgroundColor: primaryGreen,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 4,
+      ),
+      // -----------------------
       body: Column(
         children: [
           Padding(
@@ -149,7 +161,7 @@ class _ManageBooksPageState extends State<ManageBooksPage> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search ebooks by title or author...',
-                prefixIcon: Icon(Icons.search, color: primaryGreen),
+                prefixIcon: const Icon(Icons.search, color: primaryGreen),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -162,7 +174,7 @@ class _ManageBooksPageState extends State<ManageBooksPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide(color: primaryGreen, width: 2.0),
+                  borderSide: const BorderSide(color: primaryGreen, width: 2.0),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: 12.0,
@@ -231,14 +243,14 @@ class _ManageBooksPageState extends State<ManageBooksPage> {
                                           height: 100,
                                           errorBuilder:
                                               (context, error, stackTrace) =>
-                                                  Icon(
+                                                  const Icon(
                                                     Icons.broken_image,
                                                     size: 40,
                                                     color: primaryGreen,
                                                   ),
                                         ),
                                       )
-                                    : Icon(
+                                    : const Icon(
                                         Icons.menu_book,
                                         size: 40,
                                         color: primaryGreen,
@@ -298,7 +310,10 @@ class _ManageBooksPageState extends State<ManageBooksPage> {
                               Column(
                                 children: [
                                   IconButton(
-                                    icon: Icon(Icons.edit, color: primaryGreen),
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: primaryGreen,
+                                    ),
                                     tooltip: 'Edit Ebook',
                                     onPressed: () async {
                                       final updatedBook = await Navigator.push(
@@ -315,7 +330,7 @@ class _ManageBooksPageState extends State<ManageBooksPage> {
                                     },
                                   ),
                                   IconButton(
-                                    icon: Icon(
+                                    icon: const Icon(
                                       Icons.delete,
                                       color: Colors.redAccent,
                                     ),
