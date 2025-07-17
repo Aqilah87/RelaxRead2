@@ -35,29 +35,50 @@ class _WishlistPageState extends State<WishlistPage> {
       if (userId == null) return [];
 
       final response = await supabase
-      .from('user_wishlists')
-      .select('''
-        book_id,
-        books:book_id (
-          title,
-          author,
-          genre,
-          description,
-          image_url,
-          page_number,
-          month_published,
-          year_published,
-          publisher,
-          ebook_id
-        )
-      ''') // 🛠️ ✅ Updated: removed 'rating' field from books block
-      .eq('user_id', userId);
+          .from('user_wishlists')
+          .select('''
+            book_id,
+            books:book_id (
+              title,
+              author,
+              genre,
+              description,
+              image_url,
+              page_number,
+              month_published,
+              year_published,
+              publisher,
+              ebook_id
+            )
+          ''')
+          .eq('user_id', userId);
 
+      // ✅ Log response for debugging
+      print('Wishlist response: $response');
 
-      if (response == null) return [];
+      // ✅ Make sure response is a non-empty list
+      if (response.isEmpty) return [];
 
       return response.map<Book>((item) {
-        final bookData = item['books'] as Map<String, dynamic>;
+        final bookData = item['books'] as Map<String, dynamic>?;
+
+        // ✅ Handle edge case: books block is missing
+        if (bookData == null) {
+          print('Missing book data for wishlist item: $item');
+          return Book.fromMap({
+            'title': 'Unknown',
+            'author': '',
+            'description': '',
+            'genre': '',
+            'image_url': '',
+            'page_number': 0,
+            'month_published': '',
+            'year_published': '',
+            'publisher': '',
+            'ebook_id': '',
+          });
+        }
+
         return Book.fromMap({
           ...bookData,
           'ebook_id': bookData['ebook_id'] ?? bookData['id'],
