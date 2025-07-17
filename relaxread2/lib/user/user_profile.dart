@@ -1,301 +1,300 @@
+import 'dart:async'; // Added for StreamSubscription
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Import provider
-import 'package:relaxread2/welcome_page.dart'; // Import the new WelcomePage
-import '../theme_provider.dart'; // Ensure this path is correct for ThemeProvider
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:relaxread2/welcome_page.dart';
+import '../theme_provider.dart';
+import '../services/supabase_client.dart';
 
 class UserProfilePage extends StatefulWidget {
-  // Now requires userName and userEmail to be passed in
-  final String userName;
-  final String userEmail;
-
-  const UserProfilePage({
-    super.key,
-    required this.userName,
-    required this.userEmail,
-  });
+  const UserProfilePage({super.key, required String userName, required String userEmail});
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-  // Define the primary green color, consistent with Create Account screen
-  static const Color primaryGreen = Color(0xFF6B923C);
-  // Define a slightly darker green for accents, consistent with Login page
-  static const Color loginPrimaryGreen = Color(0xFF5A7F30);
+  final _colors = const {
+    'primaryGreen': Color(0xFF6B923C),
+    'loginGreen': Color(0xFF5A7F30),
+  };
+  
+  final _supabase = SupabaseService();
+  String _name = '', _email = '';
+  bool _loading = true;
+  StreamSubscription<AuthState>? _authSubscription;
 
-  // Function to handle logging out
-  void _handleLogout() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Logged out successfully!')));
-    // After logging out, navigate back to the Welcome page
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const WelcomePage(), // Navigate to WelcomePage
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription = _supabase.client.auth.onAuthStateChange.listen(_handleAuthChange);
+    _loadUser();
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _handleAuthChange(AuthState state) {
+    if (state.event == AuthChangeEvent.signedOut && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const WelcomePage()),
+      );
+    }
+  }
+
+  Future<void> _loadUser() async {
+    try {
+      final user = _supabase.currentUser;
+      if (user == null) throw Exception('No authenticated user');
+      
+      final data = await _supabase.getUserData(user.id);
+      
+      if (!mounted) return;
+      setState(() {
+        _name = data['name'] ?? 'No Name';
+        _email = user.email ?? 'No Email';
+        _loading = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loading = false);
+        _showError('Failed to load profile: ${e.toString()}');
+      }
+    }
+  }
+
+  Future<void> _updateName(String newName) async {
+    try {
+      final user = _supabase.currentUser;
+      if (user == null) throw Exception('No authenticated user');
+      
+      await _supabase.updateName(user.id, newName);
+      
+      if (!mounted) return;
+      setState(() => _name = newName);
+      _showMessage('Name updated successfully!');
+    } catch (e) {
+      if (mounted) _showError('Failed to update name: ${e.toString()}');
+    }
+  }
+
+  Future<void> _logout() async {
+    try {
+      await _supabase.client.auth.signOut();
+    } catch (e) {
+      if (mounted) _showError('Logout failed: ${e.toString()}');
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    try {
+      final user = _supabase.currentUser;
+      if (user == null) throw Exception('No authenticated user');
+      
+      await _supabase.deleteUser(user.id);
+    } catch (e) {
+      if (mounted) _showError('Account deletion failed: ${e.toString()}');
+    }
+  }
+
+  void _showMessage(String msg) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    }
+  }
+
+  void _showError(String msg) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showEditDialog() {
+    final controller = TextEditingController(text: _name);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Name'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Name',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (controller.text.trim().isNotEmpty) {
+                await _updateName(controller.text.trim());
+                if (mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }
 
-  // Function to show the Change Password dialog
-  void _showChangePasswordDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return ChangePasswordDialog();
-      },
+  void _showDeleteDialog() => showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Delete Account?'),
+      content: const Text('All your data will be permanently deleted. This cannot be undone.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          onPressed: () async {
+            Navigator.pop(context);
+            await _deleteAccount();
+          },
+          child: const Text('Delete Account'),
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildListItem({
+    required IconData icon,
+    required String title,
+    Color? color,
+    required VoidCallback onTap,
+  }) {
+    final theme = Provider.of<ThemeProvider>(context);
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        leading: Icon(icon, color: color ?? _colors['primaryGreen']),
+        title: Text(
+          title, 
+          style: TextStyle(
+            color: theme.isDarkMode ? Colors.white70 : Colors.grey[800],
+          ),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+        onTap: onTap,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Access ThemeProvider to get the current theme mode
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final bool isDarkMode = themeProvider.isDarkMode;
+    final theme = Provider.of<ThemeProvider>(context);
 
-    // Define colors based on the current theme mode
-    final Color appBarColor = isDarkMode
-        ? const Color(0xFF1E1E1E)
-        : Colors.white;
-    final Color scaffoldBackgroundColor = isDarkMode
-        ? const Color(0xFF121212)
-        : const Color(0xFFF0F2EB);
-    final Color appBarTitleColor = isDarkMode
-        ? primaryGreen
-        : loginPrimaryGreen;
-    final Color textColor = isDarkMode ? Colors.white70 : Colors.grey[800]!;
-    final Color lightTextColor = isDarkMode
-        ? Colors.grey[400]!
-        : Colors.grey[600]!;
-    final Color cardBackgroundColor = isDarkMode
-        ? const Color(0xFF3A3A3A)
-        : Colors.white;
-    final Color dividerColor = isDarkMode
-        ? Colors.grey[700]!
-        : Colors.grey[300]!;
-    final Color sectionTitleColor = isDarkMode
-        ? primaryGreen
-        : loginPrimaryGreen;
-    final Color trailingIconColor = isDarkMode
-        ? Colors.grey[500]!
-        : Colors.grey;
-
-    return Scaffold(
-      backgroundColor: scaffoldBackgroundColor, // Dynamic background color
-      appBar: AppBar(
-        backgroundColor: appBarColor, // Dynamic app bar background
-        elevation: 1.0,
-        title: Text(
-          'My Profile',
-          style: TextStyle(
-            color: appBarTitleColor, // Dynamic app bar title color
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
+    if (_loading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: _colors['primaryGreen'],
           ),
         ),
-        centerTitle: true, // Center the title
-        iconTheme: IconThemeData(
-          color: appBarTitleColor, // Color for the back arrow icon
-        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Profile'),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.center, // Center content horizontally
           children: [
-            // User Avatar/Profile Picture
             CircleAvatar(
               radius: 60,
-              backgroundColor: isDarkMode
-                  ? primaryGreen.withOpacity(0.4)
-                  : primaryGreen.withOpacity(0.2), // Dynamic background
+              backgroundColor: _colors['primaryGreen']?.withOpacity(0.2),
               child: Icon(
                 Icons.person,
                 size: 80,
-                color: isDarkMode
-                    ? Colors.white
-                    : primaryGreen, // Dynamic icon color
+                color: _colors['primaryGreen'],
               ),
-              // You can replace this with an actual user image:
-              // backgroundImage: NetworkImage('https://example.com/user_profile.jpg'),
             ),
             const SizedBox(height: 20),
-
-            // User Name and Edit Icon
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  widget.userName, // Display user name passed from constructor
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: textColor, // Dynamic text color
+                  _name, 
+                  style: const TextStyle(
+                    fontSize: 26, 
+                    fontWeight: FontWeight.bold
                   ),
                 ),
-                const SizedBox(width: 8),
                 IconButton(
-                  icon: Icon(Icons.edit, color: primaryGreen, size: 24),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Edit Profile details (Name/Email) functionality goes here!',
-                        ),
-                      ),
-                    );
-                    // In a real app, this would navigate to an edit profile screen
-                    // or show a dialog to edit name/email.
-                  },
+                  icon: Icon(
+                    Icons.edit,
+                    color: _colors['primaryGreen'],
+                  ),
+                  onPressed: _showEditDialog,
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-
-            // User Email Display
-            Text(
-              widget.userEmail, // Display user email passed from constructor
-              style: TextStyle(
-                fontSize: 18,
-                color: lightTextColor,
-              ), // Dynamic text color
-            ),
+            Text(_email),
             const SizedBox(height: 40),
-
-            // --- Profile Settings Section ---
-            Align(
+            const Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Profile Settings', // Section title
+                'Profile Settings', 
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: sectionTitleColor, // Dynamic section title color
+                  fontSize: 20, 
+                  fontWeight: FontWeight.bold
                 ),
               ),
             ),
-            Divider(
-              height: 20,
-              thickness: 1,
-              color: dividerColor,
-            ), // Dynamic divider color
-
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              elevation: 2.0,
-              color: cardBackgroundColor, // Dynamic card background
-              child: ListTile(
-                leading: Icon(Icons.lock_outline, color: primaryGreen),
-                title: Text(
-                  'Change Password',
-                  style: TextStyle(
-                    fontSize: 17,
-                    color: textColor,
-                  ), // Dynamic text color
-                ),
-                trailing: Icon(
-                  Icons.arrow_forward_ios,
-                  size: 18,
-                  color: trailingIconColor, // Dynamic trailing icon color
-                ),
-                onTap: () {
-                  _showChangePasswordDialog(context); // Call the dialog
-                },
+            const Divider(height: 20),
+            _buildListItem(
+              icon: Icons.lock_outline,
+              title: 'Change Password',
+              onTap: () => showDialog(
+                context: context,
+                builder: (_) => ChangePasswordDialog(supabase: _supabase),
               ),
             ),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              elevation: 2.0,
-              color: cardBackgroundColor, // Dynamic card background
-              child: ListTile(
-                leading: const Icon(
-                  Icons.subscriptions_outlined,
-                  color: primaryGreen,
-                ),
-                title: Text(
-                  'Manage Subscriptions',
-                  style: TextStyle(
-                    fontSize: 17,
-                    color: textColor,
-                  ), // Dynamic text color
-                ),
-                trailing: Icon(
-                  Icons.arrow_forward_ios,
-                  size: 18,
-                  color: trailingIconColor, // Dynamic trailing icon color
-                ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Manage Subscriptions!')),
-                  );
-                  // Navigate to subscription management page
-                },
-              ),
+            _buildListItem(
+              icon: Icons.subscriptions_outlined,
+              title: 'Manage Subscriptions',
+              onTap: () => _showMessage('Subscription management coming soon!'),
             ),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              elevation: 2.0,
-              color: cardBackgroundColor, // Dynamic card background
-              child: ListTile(
-                leading: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.redAccent,
-                ), // Red icon for delete
-                title: const Text(
-                  'Delete Account',
-                  style: TextStyle(fontSize: 17, color: Colors.redAccent),
-                ), // Red text for delete
-                trailing: Icon(
-                  Icons.arrow_forward_ios,
-                  size: 18,
-                  color: trailingIconColor, // Dynamic trailing icon color
-                ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Delete Account! (Confirmation needed)'),
-                    ),
-                  );
-                  // Implement account deletion logic (with confirmation dialog)
-                },
-              ),
+            _buildListItem(
+              icon: Icons.delete_outline,
+              title: 'Delete Account',
+              color: Colors.redAccent,
+              onTap: _showDeleteDialog,
             ),
             const SizedBox(height: 30),
-
-            // Logout Button
             ElevatedButton.icon(
-              onPressed: _handleLogout, // Call the logout handler
+              onPressed: _logout,
               icon: const Icon(Icons.logout),
               label: const Text('Log Out'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent, // Red for logout
+                backgroundColor: Colors.redAccent,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 14,
                 ),
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                elevation: 2,
               ),
             ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -303,9 +302,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 }
 
-// New Widget for Change Password Dialog
 class ChangePasswordDialog extends StatefulWidget {
-  const ChangePasswordDialog({super.key});
+  final SupabaseService supabase;
+  const ChangePasswordDialog({super.key, required this.supabase});
 
   @override
   State<ChangePasswordDialog> createState() => _ChangePasswordDialogState();
@@ -313,169 +312,94 @@ class ChangePasswordDialog extends StatefulWidget {
 
 class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmNewPasswordController =
-      TextEditingController();
-  bool _obscureNewPassword = true;
-  bool _obscureConfirmNewPassword = true;
+  final _newPassController = TextEditingController();
+  final _confirmPassController = TextEditingController();
+  bool _obscureNew = true, _obscureConfirm = true, _loading = false;
 
-  @override
-  void dispose() {
-    _newPasswordController.dispose();
-    _confirmNewPasswordController.dispose();
-    super.dispose();
+  Future<void> _savePassword() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    setState(() => _loading = true);
+    try {
+      await widget.supabase.updatePassword(_newPassController.text);
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password updated successfully!')),
+      );
+      Navigator.pop(context);
+    } on AuthException catch (e) {
+      _showError('Authentication error: ${e.message}');
+    } catch (e) {
+      _showError('Error: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
-  void _savePassword() {
-    if (_formKey.currentState!.validate()) {
-      // In a real application, you would send the new password to your backend
-      // or update it in a local storage solution (e.g., SharedPreferences).
-      // Since we are not using a database, we'll just show a success message.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password changed successfully!')),
-      );
-      Navigator.of(context).pop(); // Close the dialog
-    }
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Access ThemeProvider to get the current theme mode
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final bool isDarkMode = themeProvider.isDarkMode;
-
-    // Define colors based on the current theme mode for the dialog
-    final Color dialogBackgroundColor = isDarkMode
-        ? const Color(0xFF2C2C2C)
-        : Colors.white;
-    final Color dialogTitleColor = isDarkMode
-        ? const Color(0xFF6B923C)
-        : const Color(0xFF5A7F30);
-    final Color inputTextColor = isDarkMode ? Colors.white70 : Colors.black87;
-    final Color inputLabelColor = isDarkMode
-        ? Colors.grey[400]!
-        : Colors.grey[600]!;
-    final Color inputBorderColor = isDarkMode
-        ? Colors.grey[600]!
-        : Colors.grey[400]!;
-    final Color buttonColor = const Color(
-      0xFF6B923C,
-    ); // Consistent green for buttons
-
     return AlertDialog(
-      backgroundColor: dialogBackgroundColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      title: Text(
-        'Change Password',
-        style: TextStyle(color: dialogTitleColor, fontWeight: FontWeight.bold),
-      ),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _newPasswordController,
-                obscureText: _obscureNewPassword,
-                style: TextStyle(color: inputTextColor),
-                decoration: InputDecoration(
-                  labelText: 'New Password',
-                  labelStyle: TextStyle(color: inputLabelColor),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: inputBorderColor),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: dialogTitleColor, width: 2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureNewPassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: inputLabelColor,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureNewPassword = !_obscureNewPassword;
-                      });
-                    },
-                  ),
+      title: const Text('Change Password'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _newPassController,
+              obscureText: _obscureNew,
+              decoration: InputDecoration(
+                labelText: 'New Password',
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureNew ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () => setState(() => _obscureNew = !_obscureNew),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a new password';
-                  }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters long';
-                  }
-                  return null;
-                },
               ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: _confirmNewPasswordController,
-                obscureText: _obscureConfirmNewPassword,
-                style: TextStyle(color: inputTextColor),
-                decoration: InputDecoration(
-                  labelText: 'Confirm New Password',
-                  labelStyle: TextStyle(color: inputLabelColor),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: inputBorderColor),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: dialogTitleColor, width: 2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmNewPassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: inputLabelColor,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureConfirmNewPassword =
-                            !_obscureConfirmNewPassword;
-                      });
-                    },
-                  ),
+              validator: (value) => 
+                value == null || value.isEmpty ? 'Required' : 
+                value.length < 6 ? 'Minimum 6 characters' : null,
+            ),
+            const SizedBox(height: 15),
+            TextFormField(
+              controller: _confirmPassController,
+              obscureText: _obscureConfirm,
+              decoration: InputDecoration(
+                labelText: 'Confirm Password',
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureConfirm ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please confirm your new password';
-                  }
-                  if (value != _newPasswordController.text) {
-                    return 'Passwords do not match';
-                  }
-                  return null;
-                },
               ),
-            ],
-          ),
+              validator: (value) => 
+                value != _newPassController.text ? 'Passwords do not match' : null,
+            ),
+          ],
         ),
       ),
-      actions: <Widget>[
+      actions: [
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(); // Close the dialog
-          },
-          child: Text('Cancel', style: TextStyle(color: buttonColor)),
+          onPressed: _loading ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _savePassword,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: buttonColor,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-          ),
-          child: const Text('Save'),
+          onPressed: _loading ? null : _savePassword,
+          child: _loading 
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
+              : const Text('Save'),
         ),
       ],
     );

@@ -13,7 +13,7 @@ class DataService {
       reviewerName: 'Jane Doe',
       reviewText: 'This book was absolutely amazing! Highly recommend it.',
       rating: 5.0,
-      reviewDate: DateTime(2023, 10, 26, 14, 30),
+      reviewDate: DateTime(2023, 10, 26, 14, 30), bookId: '', userId: '', comment: '', createdAt: DateTime.now(), updatedAt: null
     ),
     Review(
       reviewId: _uuid.v4(),
@@ -21,7 +21,7 @@ class DataService {
       reviewerName: 'John Smith',
       reviewText: 'A good read, but I found the ending a bit rushed.',
       rating: 3.0,
-      reviewDate: DateTime(2023, 11, 1, 9, 15),
+      reviewDate: DateTime(2023, 11, 1, 9, 15), bookId: '', userId: '', comment: '', createdAt: DateTime.now(), updatedAt: null
     ),
     Review(
       reviewId: _uuid.v4(),
@@ -29,7 +29,7 @@ class DataService {
       reviewerName: 'Alice Brown',
       reviewText: 'Couldn\'t put it down! A masterpiece.',
       rating: 5.0,
-      reviewDate: DateTime(2024, 1, 5, 18, 0),
+      reviewDate: DateTime(2024, 1, 5, 18, 0), bookId: '', userId: '', comment: '', createdAt: DateTime.now(), updatedAt: null
     ),
     Review(
       reviewId: _uuid.v4(),
@@ -37,7 +37,7 @@ class DataService {
       reviewerName: 'Bob White',
       reviewText: 'Decent, but not my favorite genre.',
       rating: 2.0,
-      reviewDate: DateTime(2024, 2, 10, 11, 45),
+      reviewDate: DateTime(2024, 2, 10, 11, 45), bookId: '', userId: '', comment: '', createdAt: DateTime.now(), updatedAt: null
     ),
   ];
 
@@ -56,7 +56,7 @@ class DataService {
 
   /// Get reviews for a specific book
   static List<Review> getReviewsForBook(String ebookId) {
-    return _mockReviews.where((review) => review.ebookId == ebookId).toList();
+    return _mockReviews.where((review) => review.bookId == ebookId).toList();
   }
 
   /// Add a new review

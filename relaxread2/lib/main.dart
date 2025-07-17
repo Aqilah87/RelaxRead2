@@ -46,10 +46,7 @@ class MyApp extends StatelessWidget {
           initialRoute: '/',
           routes: {
             '/': (context) => const WelcomePage(),
-            '/home': (context) => const HomePage(
-                  userName: '',
-                  userEmail: '',
-                ),
+            '/home': (context) => const HomePage(userName: '', userEmail: ''),
             '/admin_dashboard': (context) => const AdminDashboardPage(),
           },
         );
@@ -86,10 +83,7 @@ class MyApp extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          borderSide: const BorderSide(
-            color: Color(0xFF6B923C),
-            width: 2.0,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF6B923C), width: 2.0),
         ),
         contentPadding: const EdgeInsets.symmetric(
           vertical: 16.0,
@@ -149,10 +143,7 @@ class MyApp extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
-          borderSide: const BorderSide(
-            color: Color(0xFF6B923C),
-            width: 2.0,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF6B923C), width: 2.0),
         ),
         contentPadding: const EdgeInsets.symmetric(
           vertical: 16.0,

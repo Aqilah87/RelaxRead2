@@ -40,16 +40,14 @@ class Book {
       imageUrl: map['image_url'],
       personalNote: map['personal_note'],
       description: map['description'], // Added to fromMap
-      pageNumber: map['page_number'] is int 
-          ? map['page_number'] 
+      pageNumber: map['page_number'] is int
+          ? map['page_number']
           : int.tryParse(map['page_number']?.toString() ?? ''),
       monthPublish: map['month_publish'],
       yearPublisher: map['year_publisher'],
       publisher: map['publisher'],
       genre: map['genre'],
-      rating: map['rating'] != null 
-          ? (map['rating'] as num).toDouble() 
-          : null,
+      rating: map['rating'] != null ? (map['rating'] as num).toDouble() : null,
     );
   }
 
